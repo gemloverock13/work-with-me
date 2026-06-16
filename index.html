@@ -4,9 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Work With Me — Brain in Hand</title>
-<meta name="description" content="Build a working preferences profile that helps colleagues understand how to work well with you.">
+<meta name="description" content="A working preferences profile that helps colleagues understand how to work well with you.">
 <style>
-/* ── Reset & tokens ─────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
   --plum:   #1B002E;
@@ -21,1118 +20,754 @@
   --priv:   #4A6FA5;
   --priv-bg:#EEF3FB;
   --priv-bd:#B8CFEE;
-  --radius: 10px;
-  --font: system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
-body {
-  font-family: var(--font);
-  background: var(--bg);
-  min-height: 100vh;
-  color: var(--plum);
-  -webkit-font-smoothing: antialiased;
-}
-button { font-family: var(--font); cursor: pointer; }
-input  { font-family: var(--font); }
+body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background: var(--bg); min-height: 100vh; color: var(--plum); -webkit-font-smoothing: antialiased; }
+button, input { font-family: inherit; }
+.shell { max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; background: var(--bg); }
 
-/* ── Layout shell ───────────────────────────────────────── */
-.shell {
-  max-width: 480px;
-  margin: 0 auto;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: var(--bg);
+/* Header — avatar appears here once chosen */
+.hdr { background: var(--plum); padding: 1.1rem 1.25rem 0.7rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.logo { color: var(--yellow); font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.logo span { color: rgba(255,255,255,.4); font-weight: 400; letter-spacing: 0; text-transform: none; margin-left: 5px; }
+.hdr-right { display: flex; align-items: center; gap: 10px; }
+.sc { font-size: 11px; color: rgba(255,255,255,.35); }
+.hdr-av {
+  width: 30px; height: 30px; border-radius: 50%;
+  overflow: hidden; border: 1.5px solid rgba(255,255,255,.3);
+  background: var(--lilac); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity .3s;
 }
+.hdr-av svg { width: 100%; height: 100%; }
+.hdr-av.hidden { opacity: 0; pointer-events: none; }
 
-/* ── Header ─────────────────────────────────────────────── */
-.hdr {
-  background: var(--plum);
-  padding: 1.25rem 1.25rem 0.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-.logo {
-  color: var(--yellow);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-.logo span {
-  color: rgba(255,255,255,.45);
-  font-weight: 400;
-  letter-spacing: 0;
-  text-transform: none;
-  margin-left: 6px;
-}
-.step-counter {
-  font-size: 11px;
-  color: rgba(255,255,255,.4);
-}
-
-/* ── Progress pips ──────────────────────────────────────── */
-.pips {
-  background: var(--plum);
-  padding: 0 1.25rem 1rem;
-  display: flex;
-  gap: 5px;
-}
-.pip {
-  height: 3px;
-  border-radius: 2px;
-  flex: 1;
-  background: rgba(255,255,255,.15);
-  transition: background .3s;
-}
-.pip.done   { background: var(--yellow); }
+.pips { background: var(--plum); padding: 0 1.25rem .9rem; display: flex; gap: 4px; }
+.pip { height: 3px; border-radius: 2px; flex: 1; background: rgba(255,255,255,.15); transition: background .3s; }
+.pip.done { background: var(--yellow); }
 .pip.active { background: var(--lilac); }
 
-/* ── Section labels ─────────────────────────────────────── */
-.s-label {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--purple);
-  padding: 1.25rem 1.25rem .35rem;
-}
-.s-head {
-  font-size: 19px;
-  font-weight: 500;
-  color: var(--plum);
-  padding: 0 1.25rem .25rem;
-  line-height: 1.35;
-}
-.s-sub {
-  font-size: 12px;
-  color: var(--muted);
-  padding: 0 1.25rem 1rem;
-  line-height: 1.6;
-}
+.s-eyebrow { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--purple); padding: 1.25rem 1.25rem .3rem; }
+.s-head { font-size: 20px; font-weight: 500; color: var(--plum); padding: 0 1.25rem .3rem; line-height: 1.3; }
+.s-warm { font-size: 13px; color: var(--purple); padding: 0 1.25rem .25rem; line-height: 1.5; font-style: italic; }
+.s-sub  { font-size: 12px; color: var(--muted); padding: 0 1.25rem .9rem; line-height: 1.6; }
 
-/* ── Info card (intro / battery notice) ─────────────────── */
-.info-card {
-  margin: 0 1.25rem 1rem;
-  background: #fff;
-  border-radius: 12px;
-  border: .5px solid var(--lilac);
-  padding: 1rem 1.1rem;
-}
-.info-card p {
-  font-size: 12px;
-  color: var(--muted);
-  line-height: 1.65;
-  margin-bottom: .65rem;
-}
+.info-card { margin: 0 1.25rem 1rem; background: #fff; border-radius: 12px; border: .5px solid var(--lilac); padding: 1rem 1.1rem; }
+.info-card p { font-size: 12px; color: var(--muted); line-height: 1.65; margin-bottom: .6rem; }
 .info-card p:last-child { margin-bottom: 0; }
 .info-card strong { color: var(--plum); font-weight: 500; }
-.info-card .small  { font-size: 11px; color: #9B8AAA; }
+.info-small { font-size: 11px; color: #9B8AAA; padding: 0 1.25rem; line-height: 1.5; }
 
-/* ── Visibility legend ──────────────────────────────────── */
-.vis-key {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 0 1.25rem .75rem;
-}
-.vk-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 10px;
-  color: var(--muted);
-}
-.vk-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
+/* Avatar picker */
+.av-section { padding: 0 1.25rem 1rem; }
+.av-tab-row { display: flex; gap: 6px; margin-bottom: .75rem; }
+.av-tab { flex: 1; padding: 7px 4px; border-radius: 7px; font-size: 11px; font-weight: 500; text-align: center; cursor: pointer; border: 1.5px solid var(--lilac); background: #fff; color: var(--muted); transition: all .15s; }
+.av-tab.active { background: var(--purple); color: #fff; border-color: var(--purple); }
+.av-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 1rem; }
+.av-item { border-radius: 12px; border: 2.5px solid transparent; cursor: pointer; overflow: hidden; transition: border-color .15s, transform .12s; aspect-ratio: 1; background: var(--pale); -webkit-tap-highlight-color: transparent; }
+.av-item:hover { transform: scale(1.04); border-color: var(--lilac); }
+.av-item.chosen { border-color: var(--purple); }
+.av-item svg { width: 100%; height: 100%; display: block; }
+.name-wrap { margin-bottom: .75rem; }
+.name-label { font-size: 10px; color: var(--muted); margin-bottom: 4px; }
+.name-input { font-size: 15px; font-weight: 500; color: var(--plum); border: none; border-bottom: 1.5px solid var(--lilac); background: transparent; width: 100%; padding: 4px 0; outline: none; }
+.name-input:focus { border-bottom-color: var(--purple); }
+.role-input { font-size: 12px; color: var(--muted); border: none; border-bottom: 1px solid var(--lilac); background: transparent; width: 100%; padding: 3px 0; margin-top: 6px; outline: none; }
+.role-input:focus { border-bottom-color: var(--purple); }
 
-/* ── Tile grid ──────────────────────────────────────────── */
-.tile-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(136px, 1fr));
-  gap: 7px;
-  padding: 0 1.25rem .5rem;
-}
-.tile {
-  background: #fff;
-  border: 1.5px solid #EDE0F5;
-  border-radius: var(--radius);
-  padding: 9px 9px 8px;
-  cursor: pointer;
-  transition: border-color .15s, background .15s;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-height: 66px;
-  -webkit-tap-highlight-color: transparent;
-}
+/* Branch */
+.branch-card { margin: 0 1.25rem .75rem; background: #fff; border-radius: 12px; border: .5px solid var(--lilac); overflow: hidden; }
+.branch-q { font-size: 13px; font-weight: 500; color: var(--plum); padding: .9rem 1rem .7rem; line-height: 1.4; }
+.branch-opt { display: flex; align-items: center; gap: 10px; padding: .7rem 1rem; cursor: pointer; border-top: .5px solid var(--pale); transition: background .12s; -webkit-tap-highlight-color: transparent; }
+.branch-opt:hover { background: var(--pale); }
+.branch-opt.selected { background: var(--pale); }
+.branch-dot { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--lilac); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+.branch-opt.selected .branch-dot { background: var(--purple); border-color: var(--purple); }
+.branch-inner { width: 8px; height: 8px; border-radius: 50%; background: #fff; opacity: 0; transition: opacity .15s; }
+.branch-opt.selected .branch-inner { opacity: 1; }
+.branch-txt { font-size: 13px; color: var(--plum); line-height: 1.35; }
+.branch-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+/* Vis key */
+.vis-key { display: flex; flex-wrap: wrap; gap: 5px; padding: 0 1.25rem .7rem; }
+.vk { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--muted); }
+.vk-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* Tiles */
+.tile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(136px,1fr)); gap: 7px; padding: 0 1.25rem .5rem; }
+.tile { background: #fff; border: 1.5px solid #EDE0F5; border-radius: 10px; padding: 9px 9px 8px; cursor: pointer; transition: border-color .15s, background .15s; display: flex; flex-direction: column; gap: 3px; min-height: 64px; -webkit-tap-highlight-color: transparent; }
 .tile:hover { border-color: var(--lilac); }
 .tile.vs-public  { border-color: var(--purple); background: var(--pale); }
 .tile.vs-private { border-color: var(--priv-bd); background: var(--priv-bg); }
-.tile.vs-skip    { border-color: #DDD3E8; background: #F7F3FB; opacity: .7; }
+.tile.vs-skip    { border-color: #DDD3E8; background: #F7F3FB; opacity: .65; }
 .tile.drain-tile { border-color: #FAD7D7; }
 .tile.drain-tile.vs-public  { border-color: var(--drain); background: #FFF5F5; }
 .tile.drain-tile.vs-private { border-color: var(--priv-bd); background: var(--priv-bg); }
-
-.tile-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 4px;
-  width: 100%;
-}
-.tile-emoji { font-size: 17px; line-height: 1; flex-shrink: 0; }
-.tile-badge {
-  font-size: 9px;
-  font-weight: 500;
-  padding: 2px 5px;
-  border-radius: 4px;
-  white-space: nowrap;
-  line-height: 1.3;
-  flex-shrink: 0;
-}
+.tile-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 4px; width: 100%; }
+.tile-e { font-size: 17px; line-height: 1; flex-shrink: 0; }
+.tile-badge { font-size: 9px; font-weight: 500; padding: 2px 5px; border-radius: 4px; white-space: nowrap; line-height: 1.3; flex-shrink: 0; }
 .vs-public  .tile-badge { background: var(--pale); color: var(--purple); border: .5px solid var(--lilac); }
 .vs-private .tile-badge { background: var(--priv-bg); color: var(--priv); border: .5px solid var(--priv-bd); }
 .vs-skip    .tile-badge { background: #EEE8F5; color: #9B8AAA; border: .5px solid #DDD3E8; }
-.tile-label {
-  font-size: 11px;
-  color: var(--plum);
-  line-height: 1.35;
-}
-.tile-hint {
-  font-size: 9px;
-  color: var(--muted);
-  line-height: 1.3;
-}
+.tile-label { font-size: 11px; color: var(--plum); line-height: 1.35; }
+.tile-hint  { font-size: 9px; color: var(--muted); line-height: 1.3; }
 .vs-public  .tile-hint { color: var(--purple); }
 .vs-private .tile-hint { color: var(--priv); }
 .vs-skip    .tile-hint { color: #9B8AAA; }
 
-/* ── Drain note ─────────────────────────────────────────── */
-.drain-note {
-  margin: 0 1.25rem .5rem;
-  background: #FFF5F5;
-  border: .5px solid #FFCDD2;
-  border-radius: 8px;
-  padding: 8px 10px;
-  font-size: 11px;
-  color: #8B2020;
-  line-height: 1.55;
-}
+.note-box { margin: 0 1.25rem .75rem; border-radius: 8px; padding: 8px 11px; font-size: 11px; line-height: 1.55; }
+.note-warm { background: #FFF8EC; border: .5px solid var(--amber); color: #6B4200; }
+.note-priv { background: var(--priv-bg); border: .5px solid var(--priv-bd); color: var(--priv); }
 
-/* ── Nav row ────────────────────────────────────────────── */
-.nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.25rem 1.5rem;
-  margin-top: auto;
-}
-.btn-back {
-  font-size: 12px;
-  color: var(--muted);
-  background: none;
-  border: none;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  gap: 3px;
-}
-.btn-next {
-  font-size: 13px;
-  font-weight: 500;
-  color: #fff;
-  background: var(--purple);
-  border: none;
-  border-radius: 8px;
-  padding: 10px 24px;
-  transition: opacity .15s;
-}
-.btn-next:hover   { opacity: .88; }
-.btn-next:disabled { opacity: .35; cursor: not-allowed; }
-
-/* ── Avatar row ─────────────────────────────────────────── */
-.av-row {
-  display: flex;
-  align-items: center;
-  gap: .9rem;
-  padding: 0 1.25rem 1rem;
-  position: relative;
-}
-.av-circle {
-  width: 68px;
-  height: 68px;
-  border-radius: 50%;
-  background: var(--lilac);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
-  border: 2px solid var(--purple);
-  flex-shrink: 0;
-  cursor: pointer;
-  transition: transform .15s;
-  position: relative;
-}
-.av-circle:hover { transform: scale(1.05); }
-.av-picker {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 5px;
-  padding: .6rem;
-  background: #fff;
-  border: .5px solid var(--lilac);
-  border-radius: 12px;
-  position: absolute;
-  top: 76px;
-  left: 0;
-  z-index: 50;
-  box-shadow: 0 4px 20px rgba(27,0,46,.12);
-}
-.av-picker button {
-  font-size: 19px;
-  width: 34px;
-  height: 34px;
-  border: none;
-  background: none;
-  border-radius: 7px;
-  transition: background .12s;
-}
-.av-picker button:hover { background: var(--pale); }
-.name-input {
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--plum);
-  border: none;
-  border-bottom: 1.5px solid var(--lilac);
-  background: transparent;
-  width: 100%;
-  padding: 3px 0;
-  outline: none;
-}
-.name-input:focus { border-bottom-color: var(--purple); }
-.role-input {
-  font-size: 12px;
-  color: var(--muted);
-  border: none;
-  border-bottom: 1px solid var(--lilac);
-  background: transparent;
-  width: 100%;
-  padding: 3px 0;
-  margin-top: 5px;
-  outline: none;
-}
-.role-input:focus { border-bottom-color: var(--purple); }
-
-/* ── JD upload box ──────────────────────────────────────── */
-.jd-box {
-  margin: .25rem 1.25rem 0;
-  border: 1.5px dashed var(--lilac);
-  border-radius: var(--radius);
-  padding: .85rem;
-  background: #fff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  transition: border-color .15s;
-}
-.jd-box:hover { border-color: var(--purple); }
-.jd-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  background: var(--pale);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  flex-shrink: 0;
-}
-.jd-title { font-size: 12px; font-weight: 500; color: var(--plum); }
-.jd-sub   { font-size: 10px; color: var(--muted); margin-top: 1px; }
-.jd-badge {
-  font-size: 10px;
-  background: var(--amber);
-  color: var(--plum);
-  padding: 2px 7px;
-  border-radius: 20px;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-/* ── Battery section ────────────────────────────────────── */
+/* Battery */
 .bat-wrap { padding: 0 1.25rem 1rem; }
-.bat-label {
-  font-size: 11px;
-  color: var(--muted);
-  margin-bottom: .5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.bat-label strong { color: var(--plum); font-weight: 500; }
-input[type=range] {
-  width: 100%;
-  margin-bottom: 8px;
-  accent-color: var(--purple);
-}
-.bat-track {
-  height: 22px;
-  border-radius: 11px;
-  background: #EDE0F5;
-  overflow: hidden;
-  border: .5px solid var(--lilac);
-}
-.bat-fill {
-  height: 100%;
-  border-radius: 11px;
-  transition: width .25s, background .25s;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding-right: 8px;
-}
-.bat-fill span {
-  font-size: 10px;
-  font-weight: 500;
-  color: #fff;
-}
-.bat-tip {
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 6px;
-  text-align: center;
-  font-style: italic;
-}
-.bat-notice {
-  margin: 0 1.25rem .75rem;
-  background: var(--priv-bg);
-  border: .5px solid var(--priv-bd);
-  border-radius: 8px;
-  padding: 8px 10px;
-  font-size: 11px;
-  color: var(--priv);
-  line-height: 1.55;
-}
-.sec-toggle {
-  display: flex;
-  gap: 6px;
-  padding: 0 1.25rem .75rem;
-}
-.stog {
-  flex: 1;
-  padding: 8px 4px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-  border: 1.5px solid transparent;
-  text-align: center;
-  transition: all .15s;
-}
+.bat-lbl { font-size: 11px; color: var(--muted); margin-bottom: .5rem; display: flex; justify-content: space-between; }
+.bat-lbl strong { color: var(--plum); }
+input[type=range] { width: 100%; margin-bottom: 8px; accent-color: var(--purple); }
+.bat-track { height: 22px; border-radius: 11px; background: #EDE0F5; overflow: hidden; border: .5px solid var(--lilac); }
+.bat-fill { height: 100%; border-radius: 11px; transition: width .25s, background .25s; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; }
+.bat-fill span { font-size: 10px; font-weight: 500; color: #fff; }
+.bat-tip { font-size: 11px; color: var(--muted); margin-top: 6px; text-align: center; font-style: italic; }
+.sec-toggle { display: flex; gap: 6px; padding: 0 1.25rem .75rem; }
+.stog { flex: 1; padding: 8px 4px; border-radius: 8px; font-size: 11px; font-weight: 500; cursor: pointer; border: 1.5px solid transparent; text-align: center; transition: all .15s; }
 .stog.charge { background: var(--pale); color: var(--purple); border-color: var(--lilac); }
 .stog.charge.active { background: var(--purple); color: #fff; border-color: var(--purple); }
 .stog.drain  { background: #FFF5F5; color: #8B2020; border-color: #FFCDD2; }
 .stog.drain.active  { background: var(--drain); color: #fff; border-color: var(--drain); }
 
-/* ── Time of day ────────────────────────────────────────── */
-.tod-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 0 1.25rem .6rem;
-}
-.tod-legend-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 10px;
-  color: var(--muted);
-}
-.tod-legend-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 2px;
-  flex-shrink: 0;
-}
-.tod-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  padding: 0 1.25rem .5rem;
-}
-.tod-cell {
-  background: #fff;
-  border: 1.5px solid #EDE0F5;
-  border-radius: 9px;
-  padding: 8px 6px;
-  cursor: pointer;
-  text-align: center;
-  transition: border-color .15s, background .15s;
-  -webkit-tap-highlight-color: transparent;
-}
+/* TOD */
+.tod-legend { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 1.25rem .6rem; }
+.tod-li { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--muted); }
+.tod-ld { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+.tod-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; padding: 0 1.25rem .5rem; }
+.tod-cell { background: #fff; border: 1.5px solid #EDE0F5; border-radius: 9px; padding: 8px 6px; cursor: pointer; text-align: center; transition: all .15s; -webkit-tap-highlight-color: transparent; }
 .tod-cell:hover { border-color: var(--lilac); }
 .tod-cell.peak { border-color: var(--purple); background: var(--pale); }
 .tod-cell.low  { border-color: var(--drain); background: #FFF5F5; }
-.tod-time  { font-size: 9px; color: var(--muted); margin-bottom: 3px; }
-.tod-bar-wrap {
-  height: 28px;
-  border-radius: 4px;
-  background: #EDE0F5;
-  overflow: hidden;
-  position: relative;
-  margin: 2px 0;
-}
-.tod-bar {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  border-radius: 4px;
-  transition: height .25s, background .25s;
-}
-.tod-name {
-  font-size: 9px;
-  font-weight: 500;
-  margin-top: 2px;
-}
-.tod-notice {
-  margin: .5rem 1.25rem 0;
-  background: var(--pale);
-  border: .5px solid var(--lilac);
-  border-radius: 8px;
-  padding: 8px 10px;
-  font-size: 10px;
-  color: var(--muted);
-  line-height: 1.55;
-}
+.tod-time { font-size: 9px; color: var(--muted); margin-bottom: 3px; }
+.tod-bar-wrap { height: 28px; border-radius: 4px; background: #EDE0F5; overflow: hidden; position: relative; margin: 2px 0; }
+.tod-bar { position: absolute; bottom: 0; left: 0; right: 0; border-radius: 4px; transition: height .25s, background .25s; }
+.tod-name { font-size: 9px; font-weight: 500; margin-top: 2px; }
 
-/* ── Consent gate ───────────────────────────────────────── */
-.consent-wrap { padding: 0 1.25rem; }
-.consent-card {
-  background: #fff;
-  border-radius: 12px;
-  border: 1.5px solid var(--purple);
-  overflow: hidden;
-}
-.consent-hdr {
-  background: var(--purple);
-  padding: .9rem 1rem;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.consent-hdr-icon { font-size: 18px; }
-.consent-hdr-txt  { font-size: 13px; font-weight: 500; color: #fff; }
+/* Nav */
+.nav { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem 1.5rem; margin-top: auto; }
+.btn-back { font-size: 12px; color: var(--muted); background: none; border: none; padding: 0; cursor: pointer; }
+.btn-next { font-size: 13px; font-weight: 500; color: #fff; background: var(--purple); border: none; border-radius: 8px; padding: 10px 24px; transition: opacity .15s; cursor: pointer; }
+.btn-next:hover { opacity: .88; }
+.btn-next:disabled { opacity: .35; cursor: not-allowed; }
+
+/* Consent */
+.consent-card { margin: 0 1.25rem; background: #fff; border-radius: 12px; border: 1.5px solid var(--purple); overflow: hidden; }
+.consent-hdr { background: var(--purple); padding: .9rem 1rem; display: flex; align-items: center; gap: 8px; }
+.consent-hdr-txt { font-size: 13px; font-weight: 500; color: #fff; }
 .consent-body { padding: 1rem; }
-.consent-body p {
-  font-size: 12px;
-  color: var(--muted);
-  line-height: 1.65;
-  margin-bottom: .65rem;
-}
-.consent-body p:last-of-type { margin-bottom: 0; }
+.consent-body p { font-size: 12px; color: var(--muted); line-height: 1.65; margin-bottom: .6rem; }
 .consent-body strong { color: var(--plum); font-weight: 500; }
-.consent-check-wrap {
-  display: flex;
-  align-items: flex-start;
-  gap: 9px;
-  margin-top: 1rem;
-  padding: .8rem;
-  background: var(--pale);
-  border: .5px solid var(--lilac);
-  border-radius: 8px;
-  cursor: pointer;
-}
-.consent-check-wrap input { margin-top: 1px; accent-color: var(--purple); flex-shrink: 0; }
-.consent-check-wrap label { font-size: 11px; color: var(--plum); line-height: 1.5; cursor: pointer; }
+.consent-check { display: flex; align-items: flex-start; gap: 9px; margin-top: 1rem; padding: .8rem; background: var(--pale); border: .5px solid var(--lilac); border-radius: 8px; cursor: pointer; }
+.consent-check input { margin-top: 2px; accent-color: var(--purple); flex-shrink: 0; }
+.consent-check label { font-size: 11px; color: var(--plum); line-height: 1.5; cursor: pointer; }
 .consent-btns { display: flex; gap: 8px; margin-top: 1rem; }
-.btn-publish {
-  flex: 1;
-  background: var(--purple);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 500;
-  border: none;
-  border-radius: 8px;
-  padding: 12px;
-  transition: opacity .15s;
-}
-.btn-publish:hover   { opacity: .88; }
+.btn-publish { flex: 1; background: var(--purple); color: #fff; font-size: 13px; font-weight: 500; border: none; border-radius: 8px; padding: 12px; cursor: pointer; transition: opacity .15s; }
+.btn-publish:hover { opacity: .88; }
 .btn-publish:disabled { opacity: .35; cursor: not-allowed; }
-.btn-go-back {
-  flex: 1;
-  background: transparent;
-  color: var(--muted);
-  font-size: 12px;
-  border: .5px solid var(--lilac);
-  border-radius: 8px;
-  padding: 12px;
-}
+.btn-goback { flex: 1; background: transparent; color: var(--muted); font-size: 12px; border: .5px solid var(--lilac); border-radius: 8px; padding: 12px; cursor: pointer; }
 
-/* ── Profile card ───────────────────────────────────────── */
-.profile-card {
-  margin: .75rem 1.25rem 0;
-  background: #fff;
-  border-radius: 14px;
-  border: .5px solid var(--lilac);
-  overflow: hidden;
-}
-.profile-hdr {
+/* Profile card — hero avatar treatment */
+.profile-card { margin: .75rem 1.25rem 0; background: #fff; border-radius: 14px; border: .5px solid var(--lilac); overflow: hidden; }
+.profile-hero {
   background: var(--plum);
-  padding: 1.1rem;
+  padding: 1.5rem 1.25rem 1rem;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
+  text-align: center;
+  position: relative;
 }
-.profile-av {
-  width: 50px;
-  height: 50px;
+.profile-hero-av {
+  width: 80px; height: 80px;
   border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid rgba(255,255,255,.3);
   background: var(--lilac);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  border: 2px solid rgba(255,255,255,.25);
+  margin-bottom: .75rem;
   flex-shrink: 0;
 }
-.profile-name { font-size: 15px; font-weight: 500; color: #fff; }
-.profile-role { font-size: 11px; color: var(--lilac); margin-top: 2px; }
-.profile-bih  { font-size: 10px; color: var(--yellow); margin-top: 5px; opacity: .75; }
+.profile-hero-av svg { width: 100%; height: 100%; display: block; }
+.profile-hero-name { font-size: 18px; font-weight: 500; color: #fff; margin-bottom: 2px; }
+.profile-hero-role { font-size: 12px; color: var(--lilac); margin-bottom: 6px; }
+.profile-hero-bih  { font-size: 10px; color: var(--yellow); opacity: .75; letter-spacing: .04em; }
 .profile-body { padding: 1.1rem; display: flex; flex-direction: column; gap: .9rem; }
-.profile-section-title {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--purple);
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
+.prof-st { font-size: 10px; font-weight: 600; color: var(--purple); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 6px; }
 .chips { display: flex; flex-wrap: wrap; gap: 5px; }
-.chip {
-  font-size: 11px;
-  padding: 3px 9px;
-  border-radius: 20px;
-  background: var(--pale);
-  color: var(--plum);
-  border: .5px solid var(--lilac);
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
+.chip { font-size: 11px; padding: 3px 9px; border-radius: 20px; background: var(--pale); color: var(--plum); border: .5px solid var(--lilac); }
 .chip-drain { background: #FFF5F5; border-color: #FFCDD2; color: #8B2020; }
-.chip-energy { background: #FFF8E1; border-color: var(--amber); color: #5D3A00; }
-.chip-peak  { background: var(--pale); border-color: var(--purple); color: var(--plum); }
+.chip-peak  { background: var(--pale); border-color: var(--purple); }
+.profile-caveat { font-size: 10px; color: var(--muted); line-height: 1.55; background: var(--pale); border-radius: 7px; padding: 9px 11px; border: .5px solid var(--lilac); }
 
-.profile-caveat {
-  font-size: 10px;
-  color: var(--muted);
-  line-height: 1.55;
-  background: var(--pale);
-  border-radius: 7px;
-  padding: 9px 11px;
-  border: .5px solid var(--lilac);
+.private-note { margin: .75rem 1.25rem 0; background: var(--priv-bg); border: .5px solid var(--priv-bd); border-radius: 10px; padding: .85rem 1rem; }
+.private-note-title { font-size: 10px; font-weight: 600; color: var(--priv); margin-bottom: 6px; }
+
+/* Download buttons */
+.dl-row { display: flex; gap: 8px; margin: .85rem 1.25rem 0; }
+.btn-dl-pub {
+  flex: 1; background: var(--plum); color: var(--yellow);
+  font-size: 13px; font-weight: 500; border: none; border-radius: 9px;
+  padding: 13px 8px; cursor: pointer; transition: opacity .15s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
 }
-.private-note {
-  margin: .75rem 1.25rem 0;
-  background: var(--priv-bg);
-  border: .5px solid var(--priv-bd);
-  border-radius: 10px;
-  padding: .85rem 1rem;
+.btn-dl-pub:hover { opacity: .9; }
+.btn-dl-priv {
+  flex: 1; background: var(--priv-bg); color: var(--priv);
+  font-size: 13px; font-weight: 500; border: 1.5px solid var(--priv-bd);
+  border-radius: 9px; padding: 13px 8px; cursor: pointer; transition: opacity .15s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
 }
-.private-note-title {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--priv);
-  margin-bottom: 6px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-.btn-action {
-  margin: .85rem 1.25rem 0;
-  width: calc(100% - 2.5rem);
-  background: var(--plum);
-  color: var(--yellow);
-  font-size: 13px;
-  font-weight: 500;
-  border: none;
-  border-radius: 9px;
-  padding: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  transition: opacity .15s;
-}
-.btn-action:hover { opacity: .9; }
-.btn-restart {
-  margin: .6rem 1.25rem 0;
-  width: calc(100% - 2.5rem);
-  background: transparent;
-  color: var(--muted);
-  font-size: 12px;
-  border: .5px solid var(--lilac);
-  border-radius: 9px;
-  padding: 10px;
-}
+.btn-dl-priv:hover { opacity: .8; }
+.btn-dl-priv.hidden-btn { display: none; }
+.btn-restart { margin: .6rem 1.25rem 0; width: calc(100% - 2.5rem); background: transparent; color: var(--muted); font-size: 12px; border: .5px solid var(--lilac); border-radius: 9px; padding: 10px; cursor: pointer; }
 .spacer { height: 2.5rem; }
 
-/* ── Accessibility ──────────────────────────────────────── */
-.sr-only {
-  position: absolute;
-  width: 1px; height: 1px;
-  padding: 0; margin: -1px;
-  overflow: hidden;
-  clip: rect(0,0,0,0);
-  white-space: nowrap;
-  border-width: 0;
+/* PDF generation loading overlay */
+.pdf-loading {
+  position: fixed; inset: 0; background: rgba(27,0,46,.7);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 999; color: #fff; gap: 12px;
 }
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { transition: none !important; }
+.pdf-loading-text { font-size: 14px; color: var(--lilac); }
+.pdf-spinner {
+  width: 32px; height: 32px; border: 3px solid rgba(255,255,255,.2);
+  border-top-color: var(--yellow); border-radius: 50%;
+  animation: spin .8s linear infinite;
 }
-@media (max-width: 500px) {
-  .tile-grid { grid-template-columns: repeat(2, 1fr); }
-  .tod-grid  { grid-template-columns: repeat(2, 1fr); }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+@media (max-width: 400px) { .tile-grid { grid-template-columns: repeat(2,1fr); } .tod-grid { grid-template-columns: repeat(2,1fr); } .av-grid { grid-template-columns: repeat(3,1fr); } }
 </style>
 </head>
 <body>
-<div class="shell" id="shell">
-  <header class="hdr" role="banner">
+<div class="shell">
+  <header class="hdr">
     <div class="logo">Brain in Hand <span>· Work With Me</span></div>
-    <div class="step-counter" id="step-counter" aria-live="polite">Step 1 of 9</div>
+    <div class="hdr-right">
+      <div class="sc" id="sc" aria-live="polite">Step 1</div>
+      <div class="hdr-av hidden" id="hdr-av" aria-hidden="true"></div>
+    </div>
   </header>
-  <div class="pips" id="pips" role="progressbar" aria-label="Profile progress"></div>
+  <div class="pips" id="pips" role="progressbar"></div>
   <main id="app" role="main"></main>
 </div>
 
+<!-- jsPDF loaded from CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-/* ── Data ───────────────────────────────────────────────── */
-const AVATARS = ['🧠','🌟','🦋','🌿','🎯','🦄','🐙','🦊','🌈','🐺','🌙','⚡','🍀','🎨','🦁','🐸','🌻','🎵','🦅','🌊'];
+/* ── Avatar SVG library ─────────────────────────────────────────── */
+function makePerson(skin, hairColor, hairSvg, extra) {
+  return `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="40" cy="80" r="34" fill="${skin}"/>
+    <circle cx="40" cy="32" r="19" fill="${skin}"/>
+    ${hairSvg}
+    <circle cx="32" cy="33" r="2.5" fill="${hairColor}"/>
+    <circle cx="48" cy="33" r="2.5" fill="${hairColor}"/>
+    <path d="M35 39 Q40 43 45 39" stroke="${hairColor}" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+    ${extra||''}
+  </svg>`;
+}
+const SK = { light:'#F5CBA7', med:'#C8956C', tan:'#D4A574', warm:'#C68642', brn:'#8B5E3C', deep:'#6B3A2A', rich:'#7B4A2D', drk:'#A0522D' };
+const HR = { blk:'#1A0A00', dkbn:'#2C1810', brn:'#5C3317', aub:'#7B3F00', bld:'#C4822A', gry:'#9A9A9A', wht:'#BEBEBE' };
 
-const VS = { NONE: 0, PUBLIC: 1, PRIVATE: 2, SKIP: 3 };
-const VS_LABEL  = ['', 'On my profile', 'I know — not shared', 'I\'d rather not say'];
-const VS_SHORT  = ['', 'Profile', 'Private', 'Skip'];
-const VS_HINT   = ['', 'Visible on your profile', 'Noted for yourself only', 'Not included'];
+const AVATARS_PEOPLE = [
+  { id:'p1',  label:'Person — natural coils',    svg: makePerson(SK.deep, HR.blk,  `<circle cx="40" cy="20" r="20" fill="${HR.blk}"/><circle cx="40" cy="32" r="18" fill="${SK.deep}"/>`) },
+  { id:'p2',  label:'Person — straight hair',    svg: makePerson(SK.light, HR.dkbn, `<rect x="21" y="13" width="38" height="22" rx="4" fill="${HR.dkbn}"/><rect x="19" y="13" width="5" height="28" rx="2" fill="${HR.dkbn}"/><rect x="56" y="13" width="5" height="28" rx="2" fill="${HR.dkbn}"/>`) },
+  { id:'p3',  label:'Person — curly hair',       svg: makePerson(SK.med,  HR.brn,  `<ellipse cx="40" cy="19" rx="20" ry="14" fill="${HR.brn}"/><circle cx="27" cy="22" r="7" fill="${HR.brn}"/><circle cx="53" cy="22" r="7" fill="${HR.brn}"/>`) },
+  { id:'p4',  label:'Person — locs',             svg: makePerson(SK.rich, HR.dkbn, `<rect x="23" y="11" width="4" height="26" rx="2" fill="${HR.dkbn}"/><rect x="30" y="9" width="4" height="26" rx="2" fill="${HR.dkbn}"/><rect x="37" y="9" width="4" height="24" rx="2" fill="${HR.dkbn}"/><rect x="44" y="9" width="4" height="26" rx="2" fill="${HR.dkbn}"/><rect x="51" y="11" width="4" height="24" rx="2" fill="${HR.dkbn}"/>`) },
+  { id:'p5',  label:'Person — bun',              svg: makePerson(SK.tan,  HR.aub,  `<ellipse cx="40" cy="28" rx="17" ry="14" fill="${HR.aub}"/><circle cx="40" cy="12" r="9" fill="${HR.aub}"/>`) },
+  { id:'p6',  label:'Person — hijab',            svg: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="40" cy="80" r="34" fill="${SK.med}"/><circle cx="40" cy="32" r="19" fill="${SK.med}"/><path d="M18 30 Q18 10 40 10 Q62 10 62 30 Q62 54 40 54 Q18 54 18 42Z" fill="#5B8DD9"/><path d="M18 30 Q16 42 21 50 Q30 58 40 58 Q50 58 59 50 Q64 42 62 30" fill="#4A7CC7"/><circle cx="32" cy="33" r="2.5" fill="${HR.blk}"/><circle cx="48" cy="33" r="2.5" fill="${HR.blk}"/><path d="M35 39 Q40 43 45 39" stroke="${HR.blk}" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>` },
+  { id:'p7',  label:'Person — short hair',       svg: makePerson(SK.warm, HR.blk,  `<ellipse cx="40" cy="20" rx="19" ry="11" fill="${HR.blk}"/>`) },
+  { id:'p8',  label:'Person — glasses',          svg: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="40" cy="80" r="34" fill="${SK.light}"/><circle cx="40" cy="32" r="19" fill="${SK.light}"/><ellipse cx="40" cy="20" rx="18" ry="12" fill="${HR.bld}"/><rect x="23" y="29" width="14" height="9" rx="4" fill="none" stroke="${HR.dkbn}" stroke-width="1.5"/><rect x="43" y="29" width="14" height="9" rx="4" fill="none" stroke="${HR.dkbn}" stroke-width="1.5"/><line x1="37" y1="33" x2="43" y2="33" stroke="${HR.dkbn}" stroke-width="1.5"/><circle cx="30" cy="33.5" r="1.8" fill="${HR.dkbn}"/><circle cx="50" cy="33.5" r="1.8" fill="${HR.dkbn}"/><path d="M35 39 Q40 43 45 39" stroke="${HR.dkbn}" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>` },
+  { id:'p9',  label:'Person — greying hair',     svg: makePerson(SK.tan,  HR.gry,  `<ellipse cx="40" cy="20" rx="19" ry="13" fill="${HR.gry}"/><ellipse cx="40" cy="19" rx="16" ry="10" fill="${HR.wht}"/>`) },
+  { id:'p10', label:'Person — afro',             svg: makePerson(SK.drk,  HR.blk,  `<circle cx="40" cy="20" r="21" fill="${HR.blk}"/><circle cx="40" cy="32" r="18" fill="${SK.drk}"/>`) },
+  { id:'p11', label:'Person — braids',           svg: makePerson(SK.brn,  HR.dkbn, `<path d="M21 22 Q27 8 40 8 Q53 8 59 22 L61 36 Q53 30 40 30 Q27 30 19 36Z" fill="${HR.dkbn}"/><rect x="25" y="30" width="3" height="22" rx="1.5" fill="${HR.dkbn}"/><rect x="52" y="30" width="3" height="22" rx="1.5" fill="${HR.dkbn}"/>`) },
+  { id:'p12', label:'Person — shaved head',      svg: makePerson(SK.med,  HR.dkbn, `<ellipse cx="40" cy="22" rx="18" ry="12" fill="#9B6B3A"/>`) },
+];
 
+function makeSymbol(bg, em) {
+  return `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><circle cx="40" cy="40" r="40" fill="${bg}"/><text x="40" y="55" text-anchor="middle" font-size="36" font-family="Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif">${em}</text></svg>`;
+}
+const AVATARS_ABSTRACT = [
+  { id:'a1', label:'Brain',        svg: makeSymbol('#F5EAF9','🧠') },
+  { id:'a2', label:'Star',         svg: makeSymbol('#FFF8DC','🌟') },
+  { id:'a3', label:'Butterfly',    svg: makeSymbol('#E8F4FD','🦋') },
+  { id:'a4', label:'Lightning',    svg: makeSymbol('#FFFDE7','⚡') },
+  { id:'a5', label:'Plant',        svg: makeSymbol('#E8F5E9','🌿') },
+  { id:'a6', label:'Moon',         svg: makeSymbol('#EDE7F6','🌙') },
+  { id:'a7', label:'Target',       svg: makeSymbol('#FCE4EC','🎯') },
+  { id:'a8', label:'Rainbow',      svg: makeSymbol('#F3E5F5','🌈') },
+  { id:'a9', label:'Wave',         svg: makeSymbol('#E3F2FD','🌊') },
+  { id:'a10',label:'Puzzle piece', svg: makeSymbol('#E8EAF6','🧩') },
+  { id:'a11',label:'Four-leaf',    svg: makeSymbol('#E8F5E9','🍀') },
+  { id:'a12',label:'Palette',      svg: makeSymbol('#FFF3E0','🎨') },
+];
+
+/* ── Tile data ──────────────────────────────────────────────────── */
 const CHARGE_TILES = [
-  { e: '🎵', l: 'Music or background sound while I work' },
-  { e: '🌿', l: 'Time outside between tasks' },
-  { e: '🤝', l: 'A good one-to-one conversation' },
-  { e: '📝', l: 'Time to write and organise my thoughts' },
-  { e: '🎯', l: 'Clear goals and visible progress' },
-  { e: '🧩', l: 'A complex problem to get into' },
-  { e: '🔇', l: 'A quiet period with no meetings' },
-  { e: '☕', l: 'A gentle start before diving in' },
-  { e: '🏃', l: 'Moving my body during the day' },
-  { e: '🌟', l: 'Positive acknowledgement when it\'s due' },
-  { e: '🔋', l: 'Knowing what\'s coming — no surprises' },
-  { e: '🛋️', l: 'Working from my own space' },
+  { e:'🎵', l:'Music or background sound while I work' },
+  { e:'🌿', l:'A bit of fresh air between tasks' },
+  { e:'🤝', l:'A good one-to-one conversation' },
+  { e:'📝', l:'Writing things down to think' },
+  { e:'🎯', l:'Clear goals and visible progress' },
+  { e:'🧩', l:'A meaty problem to get stuck into' },
+  { e:'🔇', l:'A proper stretch of quiet time' },
+  { e:'☕', l:'A slower start before diving in' },
+  { e:'🏃', l:'Moving during the day' },
+  { e:'🌟', l:'Knowing my work is valued' },
+  { e:'🔋', l:'Knowing what\'s coming up ahead of time' },
+  { e:'🛋️', l:'Working from my own space' },
 ];
-
 const DRAIN_TILES = [
-  { e: '🔔', l: 'Constant notifications pulling my attention' },
-  { e: '🗣️', l: 'A lot of unplanned conversation' },
-  { e: '📞', l: 'Unexpected calls' },
-  { e: '🎉', l: 'Busy or loud social situations' },
-  { e: '🔀', l: 'Switching between lots of different tasks' },
-  { e: '⏰', l: 'Unclear or shifting deadlines' },
-  { e: '🧱', l: 'Ambiguity without support to navigate it' },
-  { e: '📢', l: 'Loud or open-plan environments' },
-  { e: '👁️', l: 'Feeling observed or monitored closely' },
-  { e: '🤷', l: 'Not knowing the reason behind a task' },
-  { e: '📹', l: 'Camera being required in meetings' },
-  { e: '🔄', l: 'Last-minute changes with no warning' },
+  { e:'🔔', l:'Notifications pulling at my attention' },
+  { e:'🗣️', l:'A lot of unplanned conversation' },
+  { e:'📞', l:'Unexpected calls' },
+  { e:'🎉', l:'Busy or loud social situations' },
+  { e:'🔀', l:'Jumping between lots of tasks' },
+  { e:'⏰', l:'Deadlines that shift without warning' },
+  { e:'🧱', l:'Vagueness without a way to get support' },
+  { e:'📢', l:'Noisy environments' },
+  { e:'👁️', l:'Feeling closely watched' },
+  { e:'🤷', l:'Tasks without a reason given' },
+  { e:'🔄', l:'Last-minute changes out of nowhere' },
 ];
-
 const TOD_SLOTS = [
-  { id: 'early',     label: 'Early morning', time: '6–9am',  def: 20 },
-  { id: 'morning',   label: 'Mid-morning',   time: '9–12',   def: 85 },
-  { id: 'lunch',     label: 'Lunchtime',     time: '12–2',   def: 45 },
-  { id: 'afternoon', label: 'Afternoon',     time: '2–5pm',  def: 65 },
-  { id: 'late',      label: 'Late afternoon',time: '5–7pm',  def: 38 },
-  { id: 'evening',   label: 'Evening',       time: '7pm+',   def: 25 },
+  { id:'early',     label:'Early morning', time:'6–9am', def:20 },
+  { id:'morning',   label:'Mid-morning',   time:'9–12',  def:85 },
+  { id:'lunch',     label:'Lunchtime',     time:'12–2',  def:45 },
+  { id:'afternoon', label:'Afternoon',     time:'2–5pm', def:65 },
+  { id:'late',      label:'Late afternoon',time:'5–7pm', def:38 },
+  { id:'evening',   label:'Evening',       time:'7pm+',  def:25 },
 ];
 
-const STEPS = [
-  { id: 'welcome',  label: 'Welcome',              type: 'intro' },
-  { id: 'you',      label: 'About you',            type: 'avatar' },
-  { id: 'contact',  label: 'Communication',        type: 'tiles',
-    head: 'It helps me when people reach out in a way that suits me',
-    sub:  'Tap each tile to cycle through: show it on your profile, keep it for yourself, or skip it.',
-    tiles: [
-      { e: '💬', l: 'Quick messages on Teams or Slack work well' },
-      { e: '✉️', l: 'Email works better for anything complex' },
-      { e: '📞', l: 'A call is fine — a heads-up first helps' },
-      { e: '🚫', l: 'Unannounced calls are hard for me' },
-      { e: '📅', l: 'Booking ahead works better than dropping in' },
-      { e: '💌', l: 'A written summary after conversations helps' },
-      { e: '🎧', l: 'I\'m often in deep focus — response time may vary' },
-      { e: '🌅', l: 'I\'m sharper in the morning' },
-      { e: '🌆', l: 'Afternoons tend to work better for me' },
-      { e: '🔕', l: 'Slow replies aren\'t personal — it\'s how I work' },
-      { e: '📋', l: 'Context or a clear subject line upfront helps a lot' },
-    ]
-  },
-  { id: 'battery',  label: 'Energy',               type: 'battery' },
-  { id: 'social',   label: 'Social & remote',      type: 'tiles', drain: true,
-    head: 'The social side of work — being honest about what costs me',
-    sub:  'Some things are harder than they look from the outside. You choose what, if anything, appears on your profile.',
-    tiles: [
-      { e: '🍽️', l: 'Eating together at work takes effort for me' },
-      { e: '🚂', l: 'Group travel is stressful' },
-      { e: '🎉', l: 'I come to social events — but they cost me energy' },
-      { e: '☕', l: 'Starting small talk doesn\'t come naturally' },
-      { e: '🤐', l: 'I\'m quieter than I look — I\'m not unhappy' },
-      { e: '😶', l: 'My face doesn\'t always show how I\'m feeling' },
-      { e: '🤝', l: 'Networking situations are genuinely tiring' },
-      { e: '🪑', l: 'Busy, open-plan spaces wear me out' },
-      { e: '📹', l: 'Camera-on for long calls takes a lot' },
-      { e: '🎭', l: 'Presenting as "fine" uses real energy' },
-      { e: '🌐', l: 'Remote working suits me better overall' },
-      { e: '🏢', l: 'Office days are manageable but I recover from them' },
-      { e: '🧍', l: 'One-to-one feels safer than group settings' },
-      { e: '👂', l: 'I tend to listen more than speak — I am engaged' },
-      { e: '🗣️', l: 'I need a beat before speaking up in groups' },
-    ]
-  },
-  { id: 'meetings', label: 'Meetings',             type: 'tiles',
-    head: 'It helps me in meetings when',
-    sub:  'Remote or in-person. What do you actually need to show up well?',
-    tiles: [
-      { e: '📋', l: 'An agenda comes in advance' },
-      { e: '🎯', l: 'The purpose is stated at the start' },
-      { e: '📹', l: 'Camera is optional, not required' },
-      { e: '⏱️', l: 'We start and finish on time' },
-      { e: '👋', l: 'There are brief intros — I don\'t always recognise voices' },
-      { e: '🧘', l: 'There\'s a break in anything over 45 minutes' },
-      { e: '⏳', l: 'I\'m given time to think before being asked to respond' },
-      { e: '📝', l: 'Notes or a recording are shared afterwards' },
-      { e: '🔇', l: 'Background is quiet enough for me to process' },
-      { e: '🙋', l: 'There\'s a clear way to signal I want to speak' },
-      { e: '🔁', l: 'What was agreed is recapped at the end' },
-      { e: '🚫', l: 'Back-to-back meetings are avoided where possible' },
-      { e: '1️⃣', l: 'One conversation happens at a time' },
-    ]
-  },
-  { id: 'feedback', label: 'Feedback & info',      type: 'tiles',
-    head: 'It helps me when feedback and information arrive in a way I can process',
-    sub:  'Not the polished version — what does your brain actually need?',
-    tiles: [
-      { e: '✍️', l: 'It\'s in writing so I can take it in without pressure' },
-      { e: '🤝', l: 'It\'s face to face so I can read the tone' },
-      { e: '🎯', l: 'It\'s specific and direct — softening can confuse me' },
-      { e: '🌍', l: 'The big picture comes before the detail' },
-      { e: '🔍', l: 'The detail comes first — context can follow' },
-      { e: '⏳', l: 'I\'m given time to process before I respond' },
-      { e: '📊', l: 'A visual or diagram alongside words helps' },
-      { e: '🔄', l: 'I can ask follow-ups without it seeming slow' },
-      { e: '🤐', l: 'Going quiet means I\'m processing — not disengaged' },
-      { e: '🏆', l: 'What\'s working is named alongside what isn\'t' },
-      { e: '📅', l: 'It\'s not dropped on me without any warning' },
-      { e: '🔇', l: 'It happens privately, not in a group setting' },
-    ]
-  },
-  { id: 'time',     label: 'Energy through the day', type: 'tod' },
-  { id: 'know',     label: 'Good to know',          type: 'tiles',
-    head: 'Things colleagues should know — but rarely ask',
-    sub:  'The stuff that explains behaviour that might otherwise be misread. You choose what goes on your profile.',
-    tiles: [
-      { e: '🤫', l: 'Silence usually means I\'m thinking — not withdrawing' },
-      { e: '⚡', l: 'I can seem intense — it\'s almost always enthusiasm' },
-      { e: '🧐', l: 'Lots of questions means I\'m engaged, not difficult' },
-      { e: '🌀', l: 'Change takes me a bit longer to land — early notice helps' },
-      { e: '🎭', l: 'I mask well — please still check in on me' },
-      { e: '📢', l: 'I need to say when something\'s wrong — it\'s not drama' },
-      { e: '💜', l: 'I care a lot — sometimes that\'s visible' },
-      { e: '🗣️', l: 'Knowing the why behind something matters to me' },
-      { e: '🛡️', l: 'Being direct is how I show respect — not rudeness' },
-      { e: '🔋', l: 'Low battery days happen — I\'ll flag when I can' },
-      { e: '☀️', l: 'A "good morning" out of nowhere can be hard to respond to' },
-      { e: '🤗', l: 'I appreciate being checked on — don\'t assume I\'m fine' },
-      { e: '🔒', l: 'I need to feel safe before I open up — it\'s not a slight' },
-    ]
-  },
+/* ── Branch questions ───────────────────────────────────────────── */
+const BRANCH_QS = [
+  { id:'working_pattern', q:'How do you mainly work right now?', opts:[
+    { id:'remote', text:'Mostly remote', sub:'Mainly at home or away from an office' },
+    { id:'office', text:'Mostly in an office', sub:'Most days on-site' },
+    { id:'hybrid', text:'A mix of both', sub:'Some days remote, some in the office' },
+  ]},
+  { id:'social_comfort', q:'How do you generally find the social side of work?', opts:[
+    { id:'easy',   text:'Mostly comfortable — I enjoy it' },
+    { id:'mixed',  text:'It varies — some situations are easier than others' },
+    { id:'costly', text:'Honestly, a lot of it takes energy' },
+  ]},
+  { id:'meeting_load', q:'How meeting-heavy is your typical week?', opts:[
+    { id:'light',  text:'Light — mostly async', sub:'Emails, messages, independent work' },
+    { id:'medium', text:'A reasonable amount' },
+    { id:'heavy',  text:'A lot — back-to-back most days' },
+  ]},
 ];
 
-/* ── State ──────────────────────────────────────────────── */
+/* ── Build steps ────────────────────────────────────────────────── */
+function buildSteps(b) {
+  const steps = [
+    { id:'welcome', type:'intro' },
+    { id:'you',     type:'avatar' },
+    { id:'branch',  type:'branch' },
+    { id:'comms',   type:'tiles',
+      eyebrow:'Communication preferences',
+      head:'How communication tends to work best for you',
+      warm:'This covers both how people reach you and how you like to receive information.',
+      sub:'Tap to cycle: on your profile, private, or skip.',
+      tiles: buildCommsTiles(b) },
+    { id:'battery', type:'battery' },
+  ];
+  if (b.social_comfort !== 'easy') {
+    steps.push({ id:'social', type:'tiles', drain:true,
+      eyebrow:'Social situations',
+      head: b.social_comfort==='costly' ? 'Social situations that take it out of you' : 'Some social situations — easier said than done',
+      warm:'Lots of people feel this way. You\'re in good company — and you choose what to share.',
+      sub:'None of these are complaints. They\'re just patterns that are useful for people to know.',
+      tiles: buildSocialTiles(b) });
+  }
+  if (b.meeting_load !== 'light') {
+    steps.push({ id:'meetings', type:'tiles',
+      eyebrow:'Meetings',
+      head:'What helps you get the most from meetings',
+      warm: b.meeting_load==='heavy' ? 'When meetings fill the day, small things make a big difference.' : 'Even occasional meetings go better with the right conditions.',
+      sub:'Pick what genuinely helps — these are conversation starters, not demands.',
+      tiles: buildMeetingTiles(b) });
+  }
+  steps.push(
+    { id:'feedback', type:'tiles',
+      eyebrow:'Feedback & information',
+      head:'How you take things in best',
+      warm:'This is one of the most helpful things a manager or colleague can know.',
+      sub:'Think about what actually works for you — not what sounds professional.',
+      tiles: buildFeedbackTiles() },
+    { id:'time', type:'tod' },
+    { id:'know', type:'tiles',
+      eyebrow:'Good to know',
+      head:'Things that are useful to know — but rarely get asked',
+      warm:'These are patterns that might be misread without context.',
+      sub:'You choose what goes on your profile.',
+      tiles: buildKnowTiles() }
+  );
+  return steps;
+}
+
+function buildCommsTiles(b) {
+  const t = [
+    { e:'💬', l:'Quick messages suit me — Teams, Slack, or similar' },
+    { e:'✉️', l:'Email works better when there\'s detail to cover' },
+    { e:'📅', l:'Booking time in advance works better than dropping in' },
+    { e:'💌', l:'A written summary after conversations is really helpful' },
+    { e:'🎧', l:'I\'m often in focus mode — I\'ll reply when I can' },
+    { e:'🔕', l:'A slower reply isn\'t personal — it\'s how I work best' },
+    { e:'📋', l:'Some context or a clear subject line upfront helps me' },
+    { e:'⏳', l:'I often need a moment to gather my thoughts before responding' },
+    { e:'✍️', l:'Written communication tends to work better for me than verbal' },
+    { e:'🔁', l:'A written follow-up after verbal conversations helps me retain things' },
+  ];
+  if (b.working_pattern !== 'remote') {
+    t.push({ e:'📞', l:'A call is fine — a brief heads-up first really helps' });
+    t.push({ e:'🚫', l:'Dropping by unannounced is difficult for me' });
+  } else {
+    t.push({ e:'📞', l:'Calls work — a quick message first helps me prepare' });
+  }
+  return t;
+}
+
+function buildSocialTiles(b) {
+  const t = [
+    { e:'☕', l:'Starting conversations — I find it hard to initiate' },
+    { e:'🤐', l:'I tend to be quieter than people expect — that\'s just how I am' },
+    { e:'😶', l:'My expression doesn\'t always match how I\'m actually feeling' },
+    { e:'🧍', l:'One-to-one feels more comfortable than group settings' },
+    { e:'👂', l:'I tend to listen more than I speak — I really am engaged' },
+    { e:'🗣️', l:'I need a moment to gather myself before speaking in a group' },
+    { e:'🎭', l:'I can seem perfectly fine on the outside — please check in anyway' },
+    { e:'✈️', l:'Travel for work — I find this harder than it might look' },
+  ];
+  if (b.social_comfort==='costly') {
+    t.push({ e:'🤝', l:'Networking situations genuinely tire me out' });
+    t.push({ e:'🎉', l:'I show up to social things — but it takes real energy' });
+  }
+  if (b.working_pattern!=='remote') {
+    t.push({ e:'🍽️', l:'Group lunches or eating together — not always something I find easy' });
+    t.push({ e:'🪑', l:'Busy open-plan spaces — I find these draining' });
+  }
+  if (b.working_pattern==='office'||b.working_pattern==='hybrid') {
+    t.push({ e:'🏢', l:'On-site days — I find these more tiring than they might look' });
+  }
+  if (b.working_pattern!=='office') {
+    t.push({ e:'📹', l:'Having my camera on throughout a long call — I find this tiring' });
+    t.push({ e:'🌐', l:'Remote or flexible working tends to suit me well' });
+  }
+  return t;
+}
+
+function buildMeetingTiles(b) {
+  const t = [
+    { e:'📋', l:'An agenda shared in advance makes a real difference' },
+    { e:'🎯', l:'Knowing the purpose before we start helps me settle in' },
+    { e:'⏱️', l:'Starting and finishing on time works well for me' },
+    { e:'⏳', l:'Having a moment to think before I\'m expected to respond' },
+    { e:'📝', l:'Notes or a recording shared afterwards' },
+    { e:'🔁', l:'A brief recap of what was agreed at the end' },
+  ];
+  if (b.working_pattern!=='office') {
+    t.push({ e:'📹', l:'Having my camera on for every meeting — I find this tiring over time' });
+    t.push({ e:'👋', l:'Brief introductions — I don\'t always recognise voices on calls' });
+    t.push({ e:'🔇', l:'A quiet enough background to follow the conversation properly' });
+    t.push({ e:'🙋', l:'A clear way to signal when I want to say something' });
+  }
+  if (b.meeting_load==='heavy') {
+    t.push({ e:'🧘', l:'A proper break in anything running over 45 minutes' });
+    t.push({ e:'🔃', l:'Space between meetings when possible' });
+    t.push({ e:'1️⃣', l:'One conversation at a time — side chats pull my focus' });
+  }
+  return t;
+}
+
+function buildFeedbackTiles() {
+  return [
+    { e:'✍️', l:'In writing — so I can take it in without pressure' },
+    { e:'🤝', l:'Face to face — I need to read the tone' },
+    { e:'🎯', l:'Specific and direct — vagueness makes it harder to act on' },
+    { e:'🌍', l:'Big picture first, then the detail' },
+    { e:'🔍', l:'Detail first — context can come after' },
+    { e:'⏳', l:'Time to process before I respond — I\'m not stalling' },
+    { e:'📊', l:'A diagram or visual alongside the words helps' },
+    { e:'🔄', l:'Able to ask follow-up questions without it seeming slow' },
+    { e:'🤐', l:'Going quiet means I\'m processing — not switching off' },
+    { e:'🏆', l:'What\'s going well mentioned alongside what to work on' },
+    { e:'📅', l:'Not dropped on me without any warning' },
+    { e:'🔇', l:'Privately rather than in front of others' },
+  ];
+}
+
+function buildKnowTiles() {
+  return [
+    { e:'🤫', l:'When I\'m quiet, I\'m usually thinking — not withdrawing' },
+    { e:'💭', l:'I sometimes need longer to process than it might look' },
+    { e:'🔋', l:'My energy levels vary — some days look different from others' },
+    { e:'🌀', l:'Changes to plans take me a bit longer to adjust to' },
+    { e:'🧐', l:'Asking questions is how I engage — not how I challenge' },
+    { e:'📢', l:'I tend to say something when something feels wrong — it\'s not drama' },
+    { e:'💜', l:'I invest a lot in my work — that\'s sometimes visible' },
+    { e:'🗣️', l:'Knowing the reason behind something matters to me' },
+    { e:'🛡️', l:'I tend towards directness — it\'s how I show respect' },
+    { e:'☀️', l:'Unexpected social prompts can catch me off guard' },
+    { e:'🤗', l:'I appreciate people checking in — please don\'t assume I\'m fine' },
+    { e:'🔒', l:'It takes me time to feel comfortable opening up — it\'s not personal' },
+    { e:'🎭', l:'I may come across differently on the outside than how things feel inside' },
+    { e:'⏰', l:'I can lose track of time when focused — reminders genuinely help' },
+  ];
+}
+
+/* ── State ──────────────────────────────────────────────────────── */
+const VS = { NONE:0, PUBLIC:1, PRIVATE:2, SKIP:3 };
+const VS_SHORT = ['','Profile','Private','Skip'];
+const VS_HINT  = ['','On your profile','Noted for yourself','Not included'];
+
 let currentStep = 0;
-let avatarEmoji = '🧠';
-let avatarPickerOpen = false;
+let branchAnswers = { working_pattern:null, social_comfort:null, meeting_load:null };
+let steps = buildSteps({ working_pattern:'hybrid', social_comfort:'mixed', meeting_load:'medium' });
+let avatarId = 'p1';
+let avatarTab = 'people';
 let userName = '';
 let userRole = '';
-let jdLoaded = false;
 let chargeLevel = 65;
 let drainMode = false;
 let consentChecked = false;
 let tileAnswers = {};
-STEPS.forEach(s => { if (s.type === 'tiles') tileAnswers[s.id] = {}; });
 let chargeSelections = [];
 let drainSelections = [];
 let todPeaks = [];
 let todLows = [];
 
-/* ── Utilities ──────────────────────────────────────────── */
-function batColor(p) {
-  return p > 60 ? 'var(--purple)' : p > 30 ? 'var(--amber)' : 'var(--drain)';
+function resetTileAnswers() {
+  tileAnswers = {};
+  steps.forEach(s => { if (s.type==='tiles') tileAnswers[s.id] = {}; });
 }
+resetTileAnswers();
+
+/* ── Utils ──────────────────────────────────────────────────────── */
+function batColor(p) { return p>60?'#8E3CCE':p>30?'#FFC962':'#E05555'; }
 function batTip(p) {
-  if (p >= 80) return 'Running well — protecting this is worth thinking about.';
-  if (p >= 60) return 'Decent baseline. Small changes can make a real difference.';
-  if (p >= 40) return 'Some depletion. Worth noticing what\'s costing most right now.';
-  if (p >= 20) return 'Running low. Your organisation\'s support processes may help.';
-  return 'Very depleted — your organisation\'s support processes are worth exploring.';
+  if (p>=80) return 'Running well — thinking about what keeps it there is worthwhile.';
+  if (p>=60) return 'Decent baseline. Small adjustments often make a real difference.';
+  if (p>=40) return 'Worth noticing what\'s taking the most out of you right now.';
+  if (p>=20) return 'Running low. Your organisation\'s support processes may be a good next step.';
+  return 'Very depleted — it\'s worth exploring what support your organisation can offer.';
 }
-function countPublic() {
-  let n = 0;
-  ['contact','social','meetings','feedback','know'].forEach(id => {
-    Object.values(tileAnswers[id] || {}).forEach(v => { if (v === VS.PUBLIC) n++; });
-  });
-  n += chargeSelections.length + drainSelections.length;
-  if (todPeaks.length || todLows.length) n++;
-  return n;
-}
+function getAvSvg(id) { return [...AVATARS_PEOPLE,...AVATARS_ABSTRACT].find(a=>a.id===id); }
 function getPublicTiles(id) {
-  const step = STEPS.find(s => s.id === id);
-  return Object.entries(tileAnswers[id] || {})
-    .filter(([, v]) => v === VS.PUBLIC)
-    .map(([k]) => step.tiles[parseInt(k)]);
+  const s=steps.find(x=>x.id===id); if(!s||!s.tiles) return [];
+  return Object.entries(tileAnswers[id]||{}).filter(([,v])=>v===VS.PUBLIC).map(([k])=>s.tiles[parseInt(k)]);
 }
 function getPrivateTiles(id) {
-  const step = STEPS.find(s => s.id === id);
-  return Object.entries(tileAnswers[id] || {})
-    .filter(([, v]) => v === VS.PRIVATE)
-    .map(([k]) => step.tiles[parseInt(k)]);
+  const s=steps.find(x=>x.id===id); if(!s||!s.tiles) return [];
+  return Object.entries(tileAnswers[id]||{}).filter(([,v])=>v===VS.PRIVATE).map(([k])=>s.tiles[parseInt(k)]);
+}
+function countPublic() {
+  let n=0;
+  steps.filter(s=>s.type==='tiles').forEach(s=>{Object.values(tileAnswers[s.id]||{}).forEach(v=>{if(v===VS.PUBLIC)n++;});});
+  n+=chargeSelections.length+drainSelections.length;
+  if(todPeaks.length||todLows.length) n++;
+  return n;
+}
+function hasPrivate() {
+  let found=false;
+  steps.filter(s=>s.type==='tiles').forEach(s=>{Object.values(tileAnswers[s.id]||{}).forEach(v=>{if(v===VS.PRIVATE)found=true;});});
+  return found;
+}
+function chipHtml(tiles,cls='') { return tiles.map(t=>`<div class="chip ${cls}">${t.e} ${t.l}</div>`).join(''); }
+
+/* ── Header avatar update ───────────────────────────────────────── */
+function updateHdrAvatar() {
+  const el = document.getElementById('hdr-av');
+  if (!el) return;
+  if (!userName) { el.classList.add('hidden'); return; }
+  const av = getAvSvg(avatarId);
+  el.innerHTML = av ? av.svg : '';
+  el.classList.remove('hidden');
 }
 
-/* ── Rendering helpers ──────────────────────────────────── */
+/* ── Pips ───────────────────────────────────────────────────────── */
 function renderPips() {
-  const pipsEl = document.getElementById('pips');
-  pipsEl.innerHTML = '';
-  STEPS.forEach((_, i) => {
-    const d = document.createElement('div');
-    d.className = 'pip' + (i < currentStep ? ' done' : i === currentStep ? ' active' : '');
-    pipsEl.appendChild(d);
+  const el=document.getElementById('pips'); el.innerHTML='';
+  steps.forEach((_,i)=>{
+    const d=document.createElement('div');
+    d.className='pip'+(i<currentStep?' done':i===currentStep?' active':'');
+    el.appendChild(d);
   });
-  document.getElementById('step-counter').textContent =
-    currentStep < STEPS.length
-      ? `Step ${currentStep + 1} of ${STEPS.length}`
-      : 'Review';
+  document.getElementById('sc').textContent = currentStep<steps.length ? `Step ${currentStep+1} of ${steps.length}` : 'Almost there';
+  updateHdrAvatar();
 }
 
-function chipHtml(tiles, cls = '') {
-  return tiles.map(t => `<div class="chip ${cls}">${t.e} ${t.l}</div>`).join('');
-}
-
-function tileGridHtml(stepId, tiles, isDrain) {
-  const map = tileAnswers[stepId] || {};
-  return tiles.map((t, i) => {
-    const v = map[i] || VS.NONE;
-    const vsClass = v === VS.PUBLIC ? ' vs-public' : v === VS.PRIVATE ? ' vs-private' : v === VS.SKIP ? ' vs-skip' : '';
-    const drainClass = isDrain ? ' drain-tile' : '';
-    return `<div class="tile${drainClass}${vsClass}" onclick="cycleTile('${stepId}',${i})" role="button" tabindex="0" aria-label="${t.l}: ${VS_LABEL[v] || 'not set'}">
-      <div class="tile-top">
-        <span class="tile-emoji" aria-hidden="true">${t.e}</span>
-        ${v > VS.NONE ? `<span class="tile-badge" aria-hidden="true">${VS_SHORT[v]}</span>` : ''}
-      </div>
-      <div class="tile-label">${t.l}</div>
-      ${v > VS.NONE ? `<div class="tile-hint" aria-hidden="true">${VS_HINT[v]}</div>` : ''}
-    </div>`;
-  }).join('');
-}
-
-function visKeyHtml() {
-  return `<div class="vis-key" aria-hidden="true">
-    <div class="vk-item"><div class="vk-dot" style="background:#DDD3E8"></div>Not set</div>
-    <div class="vk-item"><div class="vk-dot" style="background:var(--purple)"></div>On my profile</div>
-    <div class="vk-item"><div class="vk-dot" style="background:var(--priv)"></div>I know — not shared</div>
-    <div class="vk-item"><div class="vk-dot" style="background:#9B8AAA"></div>I'd rather not say</div>
-  </div>`;
-}
-
-function navHtml(showBack = true, nextLabel = 'Next →', nextDisabled = false) {
-  return `<div class="nav">
-    ${showBack ? `<button class="btn-back" onclick="goBack()">← Back</button>` : '<span></span>'}
-    <button class="btn-next" onclick="goNext()" ${nextDisabled ? 'disabled' : ''}>${nextLabel}</button>
-  </div>`;
-}
-
-/* ── Step renderers ─────────────────────────────────────── */
+/* ── Renderers ──────────────────────────────────────────────────── */
 function renderIntro() {
-  return `
-    <div class="s-label">Welcome</div>
+  return `<div class="s-eyebrow">Welcome</div>
     <div class="s-head">Your Work With Me profile</div>
+    <div class="s-warm">A space to share what helps you do your best work.</div>
     <div class="info-card">
-      <p>This profile helps colleagues understand how to work well with you. It covers working preferences — not medical information or diagnoses.</p>
-      <p><strong>You are in control throughout.</strong> For every item, you choose: put it on your profile, keep it for your own reflection only, or skip it entirely. Nothing goes anywhere without your explicit agreement at the end.</p>
-      <p>At the end, before anything is published, you'll be asked to review and confirm exactly what appears on your profile. You can change your mind at any point.</p>
-      <p>If anything on your profile connects to a working pattern that feels significant to you, your organisation's usual support processes are the right place to explore that further.</p>
-      <p class="small">This tool does not replace Access to Work, Occupational Health, or any medical or legal process. It is a working preferences profile only.</p>
+      <p>This profile helps the people around you understand how to work with you well — without you having to explain yourself over and over, or feel like you're asking for too much.</p>
+      <p><strong>You're in control throughout.</strong> For every tile, you choose: show it on your profile, keep it private for yourself, or skip it. Nothing goes anywhere without your agreement at the end.</p>
+      <p>We'll ask three quick questions along the way to keep things relevant — so you only see tiles that apply to how you actually work.</p>
+      <p><strong>There are no wrong answers.</strong> The more honest you are, the more useful your profile will be.</p>
     </div>
-    <div class="nav"><span></span><button class="btn-next" onclick="goNext()">Let's start →</button></div>
+    <p class="info-small">This is a working preferences profile only. It doesn't replace Access to Work, Occupational Health, or any other process your organisation has in place.</p>
+    <div class="nav"><span></span><button class="btn-next" onclick="goNext()">Let's go →</button></div>
     <div class="spacer"></div>`;
 }
 
 function renderAvatar() {
-  return `
-    <div class="s-label">About you</div>
-    <div class="s-head">Let's start with you</div>
-    <div class="s-sub">Pick an avatar and add your name. Your role is optional.</div>
-    <div class="av-row">
-      <div class="av-circle" id="av-btn" onclick="togglePicker(event)" aria-label="Choose avatar" role="button" tabindex="0">
-        <span id="av-emoji">${avatarEmoji}</span>
-        <div class="av-picker" id="av-picker" style="display:none" role="listbox" aria-label="Choose an avatar">
-          ${AVATARS.map(e => `<button onclick="pickAvatar('${e}');event.stopPropagation()" aria-label="${e}" role="option">${e}</button>`).join('')}
-        </div>
+  const list = avatarTab==='people' ? AVATARS_PEOPLE : AVATARS_ABSTRACT;
+  return `<div class="s-eyebrow">About you</div>
+    <div class="s-head">Make it feel like you</div>
+    <div class="s-warm">Pick something that feels right — it'll travel with you through the whole tool and sit at the top of your profile.</div>
+    <div class="av-section">
+      <div class="av-tab-row">
+        <div class="av-tab${avatarTab==='people'?' active':''}" onclick="setAvTab('people')" role="button" tabindex="0">People</div>
+        <div class="av-tab${avatarTab==='abstract'?' active':''}" onclick="setAvTab('abstract')" role="button" tabindex="0">Symbols &amp; nature</div>
       </div>
-      <div style="flex:1">
-        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Tap to pick an avatar that feels like you</div>
-        <input class="name-input" id="name-input" placeholder="Your name" value="${userName}"
-          oninput="userName=this.value;updateNextBtn()" aria-label="Your name">
-        <input class="role-input" placeholder="Your role — optional" value="${userRole}"
-          oninput="userRole=this.value" aria-label="Your role (optional)">
+      <div class="av-grid">
+        ${list.map(av=>`<div class="av-item${av.id===avatarId?' chosen':''}" onclick="pickAvatar('${av.id}')" role="button" tabindex="0" aria-label="${av.label}${av.id===avatarId?' — selected':''}">${av.svg}</div>`).join('')}
+      </div>
+      <div class="name-wrap">
+        <div class="name-label">Your name</div>
+        <input class="name-input" id="ni" placeholder="What would you like people to call you?" value="${userName}" oninput="userName=this.value;checkNext();updateHdrAvatar()" aria-label="Your name">
+        <input class="role-input" placeholder="Your role or team — optional" value="${userRole}" oninput="userRole=this.value" aria-label="Role (optional)">
       </div>
     </div>
-    <div class="jd-box" onclick="toggleJD()" role="button" tabindex="0" aria-label="${jdLoaded ? 'Job description loaded' : 'Upload job description'}">
-      <div class="jd-icon" aria-hidden="true">📄</div>
-      <div>
-        <div class="jd-title">${jdLoaded ? 'Job description loaded' : 'Upload your job description'}</div>
-        <div class="jd-sub">${jdLoaded ? 'Tiles tailored to your role' : 'Optional — helps personalise your tiles'}</div>
-      </div>
-      ${jdLoaded ? '<div class="jd-badge">Active</div>' : '<div style="font-size:11px;color:var(--muted)">+ Add</div>'}
+    <div class="nav">
+      <button class="btn-back" onclick="goBack()">← Back</button>
+      <button class="btn-next" id="nn" onclick="goNext()" ${userName.trim()?'':'disabled'}>Next →</button>
     </div>
-    ${navHtml(true, 'Next →', !userName.trim())}
     <div class="spacer"></div>`;
 }
 
+function renderBranch() {
+  const allDone=BRANCH_QS.every(q=>branchAnswers[q.id]!==null);
+  let html=`<div class="s-eyebrow">A few quick questions</div>
+    <div class="s-head">Tell us a bit about how you work</div>
+    <div class="s-warm">This helps us show you tiles that are actually relevant to your situation.</div>
+    <div class="s-sub">Three questions — takes about 30 seconds.</div>`;
+  BRANCH_QS.forEach(q=>{
+    html+=`<div class="branch-card"><div class="branch-q">${q.q}</div><div>`;
+    q.opts.forEach(o=>{
+      const sel=branchAnswers[q.id]===o.id;
+      html+=`<div class="branch-opt${sel?' selected':''}" onclick="selectBranch('${q.id}','${o.id}')">
+        <div class="branch-dot"><div class="branch-inner"></div></div>
+        <div><div class="branch-txt">${o.text}</div>${o.sub?`<div class="branch-sub">${o.sub}</div>`:''}</div>
+      </div>`;
+    });
+    html+=`</div></div>`;
+  });
+  html+=`<div class="nav"><button class="btn-back" onclick="goBack()">← Back</button><button class="btn-next" onclick="applyBranches()" ${allDone?'':'disabled'}>Next →</button></div><div class="spacer"></div>`;
+  return html;
+}
+
 function renderTiles(step) {
-  return `
-    <div class="s-label">${step.label}</div>
+  const map=tileAnswers[step.id]||{};
+  const tileHtml=step.tiles.map((t,i)=>{
+    const v=map[i]||VS.NONE;
+    const vc=v===VS.PUBLIC?' vs-public':v===VS.PRIVATE?' vs-private':v===VS.SKIP?' vs-skip':'';
+    return `<div class="tile${step.drain?' drain-tile':''}${vc}" onclick="cycleTile('${step.id}',${i})" role="button" tabindex="0">
+      <div class="tile-top"><span class="tile-e" aria-hidden="true">${t.e}</span>${v>VS.NONE?`<span class="tile-badge">${VS_SHORT[v]}</span>`:''}</div>
+      <div class="tile-label">${t.l}</div>
+      ${v>VS.NONE?`<div class="tile-hint">${VS_HINT[v]}</div>`:''}
+    </div>`;
+  }).join('');
+  return `<div class="s-eyebrow">${step.eyebrow}</div>
     <div class="s-head">${step.head}</div>
+    <div class="s-warm">${step.warm}</div>
     <div class="s-sub">${step.sub}</div>
-    ${visKeyHtml()}
-    <div class="tile-grid">${tileGridHtml(step.id, step.tiles, step.drain)}</div>
-    ${step.drain ? `<div class="drain-note">Selecting these helps colleagues understand what costs you energy. You decide what, if anything, appears on your profile.</div>` : ''}
-    ${navHtml()}
+    <div class="vis-key" aria-hidden="true">
+      <div class="vk"><div class="vk-dot" style="background:#DDD3E8"></div>Not set</div>
+      <div class="vk"><div class="vk-dot" style="background:#8E3CCE"></div>On my profile</div>
+      <div class="vk"><div class="vk-dot" style="background:#4A6FA5"></div>Private</div>
+      <div class="vk"><div class="vk-dot" style="background:#9B8AAA"></div>Skip</div>
+    </div>
+    <div class="tile-grid">${tileHtml}</div>
+    ${step.drain?`<div class="note-box note-warm">Lots of people find these things genuinely hard — you're in good company. You decide what, if anything, your colleagues see.</div>`:''}
+    <div class="nav"><button class="btn-back" onclick="goBack()">← Back</button><button class="btn-next" onclick="goNext()">Next →</button></div>
     <div class="spacer"></div>`;
 }
 
 function renderBattery() {
-  const pct = chargeLevel;
-  const bCol = batColor(pct);
-  const tiles = drainMode ? DRAIN_TILES : CHARGE_TILES;
-  const selArr = drainMode ? drainSelections : chargeSelections;
-  return `
-    <div class="s-label">Energy</div>
-    <div class="s-head">What fills my tank — and what empties it</div>
-    <div class="s-sub">For your own reflection. You decide what, if anything, goes on your profile.</div>
+  const pct=chargeLevel; const bCol=batColor(pct);
+  const tiles=drainMode?DRAIN_TILES:CHARGE_TILES;
+  const selArr=drainMode?drainSelections:chargeSelections;
+  const tileHtml=tiles.map((t,i)=>{
+    const isSel=selArr.includes(i);
+    return `<div class="tile${drainMode?' drain-tile':''}${isSel?' vs-public':''}" onclick="${drainMode?`toggleDrain(${i})`:`toggleCharge(${i})`}" role="button" tabindex="0">
+      <div class="tile-top"><span class="tile-e" aria-hidden="true">${t.e}</span>${isSel?'<span class="tile-badge">Profile</span>':''}</div>
+      <div class="tile-label">${t.l}</div>
+    </div>`;
+  }).join('');
+  return `<div class="s-eyebrow">Your energy</div>
+    <div class="s-head">What fills your tank — and what empties it</div>
+    <div class="s-warm">This is one of the most useful things you can share with people who work with you.</div>
+    <div class="s-sub">The slider is just for you to reflect. The tiles you can choose to share.</div>
     <div class="bat-wrap">
-      <div class="bat-label">
-        <span>In general, how charged do you feel at work?</span>
-        <strong>${pct}%</strong>
-      </div>
-      <input type="range" min="0" max="100" value="${pct}" step="5"
-        oninput="chargeLevel=parseInt(this.value);reRenderBattery()"
-        aria-label="Energy level ${pct}%">
-      <div class="bat-track">
-        <div class="bat-fill" id="bat-fill" style="width:${pct}%;background:${bCol}">
-          <span>${pct}%</span>
-        </div>
-      </div>
-      <div class="bat-tip" id="bat-tip">${batTip(pct)}</div>
+      <div class="bat-lbl"><span>How charged do you generally feel at work?</span><strong>${pct}%</strong></div>
+      <input type="range" min="0" max="100" value="${pct}" step="5" oninput="chargeLevel=parseInt(this.value);reRenderBattery()">
+      <div class="bat-track"><div class="bat-fill" style="width:${pct}%;background:${bCol}"><span>${pct}%</span></div></div>
+      <div class="bat-tip">${batTip(pct)}</div>
     </div>
-    <div class="bat-notice">Your energy level is for your own reflection. You choose whether it appears on your profile at the end.</div>
+    <div class="note-box note-priv">Your slider position is just for your own reflection — it won't appear on your profile unless you choose to add it.</div>
     <div class="sec-toggle">
-      <div class="stog charge${!drainMode ? ' active' : ''}" onclick="setDrainMode(false)" role="button" tabindex="0">⚡ What charges me</div>
-      <div class="stog drain${drainMode ? ' active' : ''}" onclick="setDrainMode(true)" role="button" tabindex="0">🔋 What drains me</div>
+      <div class="stog charge${!drainMode?' active':''}" onclick="setDrainMode(false)" role="button" tabindex="0">⚡ What charges me</div>
+      <div class="stog drain${drainMode?' active':''}" onclick="setDrainMode(true)" role="button" tabindex="0">🔋 What drains me</div>
     </div>
-    <div class="tile-grid">
-      ${tiles.map((t, i) => {
-        const isSel = selArr.includes(i);
-        return `<div class="tile${isSel ? ' vs-public' : ''}${drainMode ? ' drain-tile' : ''}"
-          onclick="${drainMode ? `toggleDrain(${i})` : `toggleCharge(${i})`}"
-          role="button" tabindex="0" aria-pressed="${isSel}">
-          <div class="tile-top">
-            <span class="tile-emoji" aria-hidden="true">${t.e}</span>
-            ${isSel ? '<span class="tile-badge">Profile</span>' : ''}
-          </div>
-          <div class="tile-label">${t.l}</div>
-        </div>`;
-      }).join('')}
-    </div>
-    ${navHtml()}
+    <div class="tile-grid">${tileHtml}</div>
+    <div class="nav"><button class="btn-back" onclick="goBack()">← Back</button><button class="btn-next" onclick="goNext()">Next →</button></div>
     <div class="spacer"></div>`;
 }
 
 function renderTOD() {
-  return `
-    <div class="s-label">Energy through the day</div>
-    <div class="s-head">When my energy shows up — and when it doesn't</div>
-    <div class="s-sub">Tap once for peak energy, again for low, again to clear.</div>
+  const todHtml=TOD_SLOTS.map(t=>{
+    const isPk=todPeaks.includes(t.id),isLw=todLows.includes(t.id);
+    const bH=isPk?88:isLw?12:t.def; const bC=isPk?'#8E3CCE':isLw?'#E05555':'#DDD3E8';
+    return `<div class="tod-cell${isPk?' peak':isLw?' low':''}" onclick="toggleTOD('${t.id}')" role="button" tabindex="0">
+      <div class="tod-time">${t.time}</div>
+      <div class="tod-bar-wrap"><div class="tod-bar" style="height:${bH}%;background:${bC}"></div></div>
+      <div class="tod-name" style="color:${isPk?'#8E3CCE':isLw?'#E05555':'#6B5A7E'}">${t.label}</div>
+    </div>`;
+  }).join('');
+  return `<div class="s-eyebrow">Energy through the day</div>
+    <div class="s-head">When your brain is at its best — and when it isn't</div>
+    <div class="s-warm">This really helps with meeting timing and when people set deadlines.</div>
+    <div class="s-sub">Tap once for peak energy, again for low, once more to clear.</div>
     <div class="tod-legend" aria-hidden="true">
-      <div class="tod-legend-item"><div class="tod-legend-dot" style="background:var(--purple)"></div>Peak — tap once</div>
-      <div class="tod-legend-item"><div class="tod-legend-dot" style="background:var(--drain)"></div>Low — tap twice</div>
-      <div class="tod-legend-item"><div class="tod-legend-dot" style="background:#DDD3E8"></div>Clear — tap three times</div>
+      <div class="tod-li"><div class="tod-ld" style="background:#8E3CCE"></div>Peak — tap once</div>
+      <div class="tod-li"><div class="tod-ld" style="background:#E05555"></div>Low — tap twice</div>
+      <div class="tod-li"><div class="tod-ld" style="background:#DDD3E8"></div>Clear — tap three times</div>
     </div>
-    <div class="tod-grid">
-      ${TOD_SLOTS.map(t => {
-        const isPk = todPeaks.includes(t.id);
-        const isLw = todLows.includes(t.id);
-        const bH = isPk ? 88 : isLw ? 12 : t.def;
-        const bC = isPk ? 'var(--purple)' : isLw ? 'var(--drain)' : '#DDD3E8';
-        const cellClass = isPk ? ' peak' : isLw ? ' low' : '';
-        const nameCol = isPk ? 'var(--purple)' : isLw ? 'var(--drain)' : 'var(--muted)';
-        return `<div class="tod-cell${cellClass}" onclick="toggleTOD('${t.id}')"
-          role="button" tabindex="0"
-          aria-label="${t.label} ${t.time}: ${isPk ? 'peak' : isLw ? 'low' : 'not set'}">
-          <div class="tod-time">${t.time}</div>
-          <div class="tod-bar-wrap">
-            <div class="tod-bar" style="height:${bH}%;background:${bC}"></div>
-          </div>
-          <div class="tod-name" style="color:${nameCol}">${t.label}</div>
-        </div>`;
-      }).join('')}
-    </div>
-    <div class="tod-notice">This helps colleagues think about timing — when to have important conversations or set key deadlines. It doesn't ask your employer to change your contracted hours.</div>
-    ${navHtml()}
+    <div class="tod-grid">${todHtml}</div>
+    <div class="note-box note-warm" style="margin-top:.75rem">Not every employer can change schedules — and this doesn't ask them to. It's about helping people choose when to have important conversations with you or set key deadlines.</div>
+    <div class="nav"><button class="btn-back" onclick="goBack()">← Back</button><button class="btn-next" onclick="goNext()">Next →</button></div>
     <div class="spacer"></div>`;
 }
 
-function renderConsentGate() {
-  const pub = countPublic();
-  document.getElementById('step-counter').textContent = 'Review';
-  return `
-    <div class="s-label">Before you publish</div>
-    <div class="s-head">Review and agree before your profile goes live</div>
-    <div class="s-sub">You have chosen <strong>${pub} item${pub !== 1 ? 's' : ''}</strong> to appear on your public profile. Everything else stays private or has been skipped.</div>
-    <div class="consent-wrap">
-      <div class="consent-card">
-        <div class="consent-hdr">
-          <span class="consent-hdr-icon" aria-hidden="true">🔒</span>
-          <div class="consent-hdr-txt">Your agreement before publishing</div>
+function renderConsent() {
+  const pub=countPublic();
+  document.getElementById('sc').textContent='Almost there';
+  return `<div class="s-eyebrow">Before you publish</div>
+    <div class="s-head">One last step</div>
+    <div class="s-sub">You've chosen <strong>${pub} item${pub!==1?'s':''}</strong> to appear on your profile. Everything else stays private or has been skipped.</div>
+    <div class="consent-card">
+      <div class="consent-hdr"><span aria-hidden="true">🔒</span><div class="consent-hdr-txt">Your agreement before publishing</div></div>
+      <div class="consent-body">
+        <p>Publishing means colleagues in your organisation will see the items you've marked as <strong>"On my profile."</strong></p>
+        <p>This is a <strong>working preferences profile.</strong> It isn't a medical disclosure, and it doesn't replace any of your organisation's existing processes for workplace support. If anything here feels significant, those processes are the right place to take it further.</p>
+        <p>You can update or remove your profile at any time.</p>
+        <div class="consent-check" onclick="toggleConsent()">
+          <input type="checkbox" id="cc" ${consentChecked?'checked':''} onchange="toggleConsent()" onclick="event.stopPropagation()">
+          <label for="cc">I understand what this profile is and is not. I agree to share the items I've marked as "On my profile" with colleagues in my organisation.</label>
         </div>
-        <div class="consent-body">
-          <p>Publishing this profile means colleagues in your organisation will be able to see the items you've marked as <strong>"On my profile."</strong></p>
-          <p>This is a <strong>working preferences profile.</strong> It is not a medical disclosure, and it does not replace any of your organisation's existing processes for workplace support. If any of the preferences you've identified feel significant to you, your organisation's usual support processes are the right place to explore what help might look like.</p>
-          <p>You can update or remove your profile at any time.</p>
-          <div class="consent-check-wrap" onclick="toggleConsent()">
-            <input type="checkbox" id="consent-cb" ${consentChecked ? 'checked' : ''}
-              onchange="toggleConsent()" onclick="event.stopPropagation()"
-              aria-label="I agree to publish my profile">
-            <label for="consent-cb">I understand what this profile is and is not. I agree to publish the items I have marked as "On my profile" to colleagues in my organisation.</label>
-          </div>
-          <div class="consent-btns">
-            <button class="btn-publish" id="pub-btn" onclick="publishProfile()" ${consentChecked ? '' : 'disabled'}>Publish my profile</button>
-            <button class="btn-go-back" onclick="goBack()">← Go back and edit</button>
-          </div>
+        <div class="consent-btns">
+          <button class="btn-publish" id="pb" onclick="publishProfile()" ${consentChecked?'':'disabled'}>Publish my profile</button>
+          <button class="btn-goback" onclick="goBack()">← Go back and edit</button>
         </div>
       </div>
     </div>
@@ -1140,222 +775,322 @@ function renderConsentGate() {
 }
 
 function renderProfile() {
-  const pct = chargeLevel;
-  const bCol = batColor(pct);
-  const charges = chargeSelections.map(i => CHARGE_TILES[i]);
-  const drains  = drainSelections.map(i => DRAIN_TILES[i]);
-  const peaks   = todPeaks.map(id => TOD_SLOTS.find(t => t.id === id));
-  const lows    = todLows.map(id => TOD_SLOTS.find(t => t.id === id));
+  const pct=chargeLevel; const bCol=batColor(pct);
+  const charges=chargeSelections.map(i=>CHARGE_TILES[i]);
+  const drains=drainSelections.map(i=>DRAIN_TILES[i]);
+  const peaks=todPeaks.map(id=>TOD_SLOTS.find(t=>t.id===id));
+  const lows=todLows.map(id=>TOD_SLOTS.find(t=>t.id===id));
+  const av=getAvSvg(avatarId);
+  const allPrivate=[];
+  steps.filter(s=>s.type==='tiles').forEach(s=>getPrivateTiles(s.id).forEach(t=>allPrivate.push(t)));
+  const privExists=allPrivate.length>0;
 
-  const sections = [
-    { id: 'contact',  title: 'It helps me when people reach out' },
-    { id: 'meetings', title: 'Meetings work better when' },
-    { id: 'feedback', title: 'Receiving feedback and information' },
-    { id: 'social',   title: 'Social context' },
-    { id: 'know',     title: 'Good to know about me' },
-  ];
-
-  const allPrivate = [];
-  ['contact','social','meetings','feedback','know'].forEach(id => {
-    getPrivateTiles(id).forEach(t => allPrivate.push(t));
-  });
-
-  let body = `
-    <div class="s-label">Published profile</div>
-    <div class="s-sub" style="padding-top:0">This is what colleagues in your organisation can see.</div>
+  let body=`<div class="s-eyebrow" style="padding-top:1.25rem">Your profile</div>
+    <div class="s-sub">This is what colleagues in your organisation will see.</div>
     <div class="profile-card">
-      <div class="profile-hdr">
-        <div class="profile-av" aria-hidden="true">${avatarEmoji}</div>
-        <div>
-          <div class="profile-name">${userName || 'Your name'}</div>
-          ${userRole ? `<div class="profile-role">${userRole}</div>` : ''}
-          <div class="profile-bih">Work With Me · Brain in Hand</div>
-        </div>
+      <div class="profile-hero">
+        <div class="profile-hero-av">${av?av.svg:''}</div>
+        <div class="profile-hero-name">${userName||'Your name'}</div>
+        ${userRole?`<div class="profile-hero-role">${userRole}</div>`:''}
+        <div class="profile-hero-bih">Work With Me · Brain in Hand</div>
       </div>
       <div class="profile-body">`;
 
-  // Energy bar
-  body += `<div>
-    <div class="profile-section-title">Energy level</div>
-    <div style="height:18px;border-radius:9px;background:#EDE0F5;overflow:hidden;border:.5px solid var(--lilac)">
-      <div style="height:100%;width:${pct}%;background:${bCol};border-radius:9px;display:flex;align-items:center;justify-content:flex-end;padding-right:7px">
-        <span style="font-size:9px;font-weight:500;color:#fff">${pct}%</span>
-      </div>
-    </div>
-  </div>`;
-
-  if (charges.length) body += `<div><div class="profile-section-title">What charges me</div><div class="chips">${chipHtml(charges)}</div></div>`;
-  if (drains.length)  body += `<div><div class="profile-section-title">What drains me</div><div class="chips">${chipHtml(drains, 'chip-drain')}</div></div>`;
-
-  if (peaks.length || lows.length) {
-    body += `<div><div class="profile-section-title">Energy through the day</div><div class="chips">`;
-    peaks.forEach(t => { body += `<div class="chip chip-peak">⚡ ${t.label} — peak</div>`; });
-    lows.forEach(t  => { body += `<div class="chip chip-drain">🔋 ${t.label} — low</div>`; });
-    body += `</div></div>`;
+  if(charges.length||drains.length){
+    body+=`<div>`;
+    if(charges.length) body+=`<div class="prof-st">What charges me</div><div class="chips" style="margin-bottom:6px">${chipHtml(charges)}</div>`;
+    if(drains.length)  body+=`<div class="prof-st" style="margin-top:4px">What drains me</div><div class="chips">${chipHtml(drains,'chip-drain')}</div>`;
+    body+=`</div>`;
   }
-
-  sections.forEach(sec => {
-    const pub = getPublicTiles(sec.id);
-    if (pub.length) {
-      body += `<div><div class="profile-section-title">${sec.title}</div><div class="chips">${chipHtml(pub)}</div></div>`;
-    }
+  if(peaks.length||lows.length){
+    body+=`<div><div class="prof-st">Energy through the day</div><div class="chips">`;
+    peaks.forEach(t=>{body+=`<div class="chip chip-peak">⚡ ${t.label} — peak</div>`;});
+    lows.forEach(t=>{body+=`<div class="chip chip-drain">🔋 ${t.label} — low</div>`;});
+    body+=`</div></div>`;
+  }
+  steps.filter(s=>s.type==='tiles').forEach(s=>{
+    const pub=getPublicTiles(s.id);
+    if(pub.length) body+=`<div><div class="prof-st">${s.eyebrow}</div><div class="chips">${chipHtml(pub)}</div></div>`;
   });
-
-  body += `<div class="profile-caveat">This is a working preferences profile only. It is not a medical disclosure, a legal document, or a record of any workplace process. It does not replace Access to Work, Occupational Health, or any other support process your organisation has in place.</div>
+  body+=`<div class="profile-caveat">This is a working preferences profile only. It is not a medical disclosure, a legal document, or a record of any workplace process. It doesn't replace Access to Work, Occupational Health, or any other support your organisation offers.</div>
       </div>
     </div>`;
 
-  if (allPrivate.length) {
-    body += `<div class="private-note">
+  if(privExists){
+    body+=`<div class="private-note">
       <div class="private-note-title">🔒 Your private notes — only visible to you</div>
-      <div class="chips">${allPrivate.map(t => `<div class="chip" style="background:var(--priv-bg);border-color:var(--priv-bd);color:var(--priv)">${t.e} ${t.l}</div>`).join('')}</div>
+      <div class="chips">${allPrivate.map(t=>`<div class="chip" style="background:#EEF3FB;border-color:#B8CFEE;color:#4A6FA5">${t.e} ${t.l}</div>`).join('')}</div>
     </div>`;
   }
 
-  body += `<button class="btn-action" onclick="window.print()">⬇ Save or print my profile</button>
-    <button class="btn-restart" onclick="restart()">Start again</button>
-    <div class="spacer"></div>`;
-
+  body+=`<div class="dl-row">
+    <button class="btn-dl-pub" onclick="downloadPDF(false)">⬇ Download my profile</button>
+    <button class="btn-dl-priv ${privExists?'':'hidden-btn'}" onclick="downloadPDF(true)">🔒 Download with private notes</button>
+  </div>
+  <button class="btn-restart" onclick="restart()">Start again</button>
+  <div class="spacer"></div>`;
   return body;
 }
 
-/* ── Main render ────────────────────────────────────────── */
+/* ── PDF Generation ─────────────────────────────────────────────── */
+async function downloadPDF(includePrivate) {
+  const overlay = document.createElement('div');
+  overlay.className = 'pdf-loading';
+  overlay.innerHTML = `<div class="pdf-spinner"></div><div class="pdf-loading-text">Building your PDF…</div>`;
+  document.body.appendChild(overlay);
+
+  await new Promise(r => setTimeout(r, 50));
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const W = 210; const margin = 18;
+    const col = W - margin*2;
+    let y = 0;
+
+    // colours
+    const PLUM   = [27,0,46];
+    const PURPLE = [142,60,206];
+    const LILAC  = [234,193,255];
+    const PALE   = [245,234,249];
+    const AMBER  = [255,201,98];
+    const YELLOW = [255,229,92];
+    const BG     = [250,249,245];
+    const MUTED  = [107,90,126];
+    const DRAIN  = [224,85,85];
+    const PRIV   = [74,111,165];
+    const PRIV_BG= [238,243,251];
+
+    function setFont(size, weight='normal', color=PLUM) {
+      doc.setFontSize(size);
+      doc.setTextColor(...color);
+      doc.setFont('helvetica', weight);
+    }
+
+    function addPage() {
+      doc.addPage();
+      y = margin;
+    }
+
+    function checkPageBreak(needed) {
+      if (y + needed > 280) addPage();
+    }
+
+    function drawRect(x, ry, w, h, color, radius=2) {
+      doc.setFillColor(...color);
+      doc.roundedRect(x, ry, w, h, radius, radius, 'F');
+    }
+
+    function drawChip(x, ry, text, bgColor, textColor, borderColor) {
+      const tw = doc.getTextWidth(text);
+      const cw = tw + 6; const ch = 6;
+      doc.setFillColor(...bgColor);
+      doc.setDrawColor(...borderColor);
+      doc.setLineWidth(0.2);
+      doc.roundedRect(x, ry, cw, ch, 1.5, 1.5, 'FD');
+      doc.setTextColor(...textColor);
+      doc.text(text, x+3, ry+4.2);
+      return cw + 3;
+    }
+
+    function renderChips(tiles, bgColor, textColor, borderColor, startY) {
+      let cx = margin; let cy = startY;
+      doc.setFontSize(8);
+      tiles.forEach(t => {
+        const txt = t.e + ' ' + t.l;
+        const tw = doc.getTextWidth(txt) + 6;
+        if (cx + tw > W - margin) { cx = margin; cy += 9; checkPageBreak(9); }
+        drawChip(cx, cy, txt, bgColor, textColor, borderColor);
+        cx += tw + 1;
+      });
+      return cy + 9;
+    }
+
+    function sectionHeader(label, startY) {
+      checkPageBreak(12);
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica','bold');
+      doc.setTextColor(...PURPLE);
+      doc.text(label.toUpperCase(), margin, startY);
+      return startY + 5;
+    }
+
+    /* ── Page 1: Public profile ── */
+    // Hero header
+    drawRect(0, 0, W, 52, PLUM, 0);
+
+    // Avatar circle
+    doc.setFillColor(...LILAC);
+    doc.circle(W/2, 20, 12, 'F');
+    doc.setFillColor(...PLUM);
+    doc.setFontSize(14);
+    doc.text(avatarId.startsWith('p') ? '●' : '◆', W/2, 23, { align:'center' });
+
+    // Name & role
+    doc.setFontSize(14);
+    doc.setFont('helvetica','bold');
+    doc.setTextColor(255,255,255);
+    doc.text(userName||'Your name', W/2, 36, { align:'center' });
+    if (userRole) {
+      doc.setFontSize(9); doc.setFont('helvetica','normal');
+      doc.setTextColor(...LILAC);
+      doc.text(userRole, W/2, 42, { align:'center' });
+    }
+    doc.setFontSize(7.5); doc.setTextColor(...YELLOW);
+    doc.text('Work With Me · Brain in Hand', W/2, 48, { align:'center' });
+
+    y = 58;
+
+    // Charges & drains
+    const charges = chargeSelections.map(i=>CHARGE_TILES[i]);
+    const drains  = drainSelections.map(i=>DRAIN_TILES[i]);
+    if (charges.length) {
+      y = sectionHeader('What charges me', y);
+      y = renderChips(charges, PALE, PLUM, LILAC, y);
+    }
+    if (drains.length) {
+      checkPageBreak(8); y+=2;
+      y = sectionHeader('What drains me', y);
+      y = renderChips(drains, [255,245,245], DRAIN, [255,205,210], y);
+    }
+
+    // Time of day
+    const peaks = todPeaks.map(id=>TOD_SLOTS.find(t=>t.id===id));
+    const lows  = todLows.map(id=>TOD_SLOTS.find(t=>t.id===id));
+    if (peaks.length||lows.length) {
+      checkPageBreak(8); y+=2;
+      y = sectionHeader('Energy through the day', y);
+      const todItems = [
+        ...peaks.map(t=>({e:'⚡',l:`${t.label} — peak`})),
+        ...lows.map(t=>({e:'🔋',l:`${t.label} — low`})),
+      ];
+      y = renderChips(todItems, PALE, PLUM, LILAC, y);
+    }
+
+    // Tile sections
+    steps.filter(s=>s.type==='tiles').forEach(s=>{
+      const pub = getPublicTiles(s.id);
+      if (!pub.length) return;
+      checkPageBreak(8); y+=2;
+      y = sectionHeader(s.eyebrow, y);
+      y = renderChips(pub, PALE, PLUM, LILAC, y);
+    });
+
+    // Caveat
+    checkPageBreak(18);
+    y += 4;
+    drawRect(margin, y, col, 14, PALE, 2);
+    doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(...MUTED);
+    const cavLines = doc.splitTextToSize('This is a working preferences profile only. It is not a medical disclosure, a legal document, or a record of any workplace process. It does not replace Access to Work, Occupational Health, or any other support your organisation offers.', col-6);
+    doc.text(cavLines, margin+3, y+4.5);
+    y += 18;
+
+    /* ── Page 2: Private notes (if requested & exist) ── */
+    const allPrivate = [];
+    steps.filter(s=>s.type==='tiles').forEach(s=>getPrivateTiles(s.id).forEach(t=>allPrivate.push(t)));
+
+    if (includePrivate && allPrivate.length) {
+      addPage();
+      drawRect(0, 0, W, 28, [27,0,46], 0);
+      doc.setFontSize(13); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
+      doc.text('Your private notes', W/2, 14, { align:'center' });
+      doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...LILAC);
+      doc.text('For your reflection only — please do not share this page', W/2, 21, { align:'center' });
+      y = 36;
+
+      drawRect(margin, y, col, 12, PRIV_BG, 2);
+      doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(...PRIV);
+      const privNote = doc.splitTextToSize('These are the things you noted for yourself — they don\'t appear on your shared profile. They\'re here so you have a record of your own reflection. You can use them to start a conversation with your manager or HR, or simply keep them for yourself.', col-6);
+      doc.text(privNote, margin+3, y+4.5);
+      y += 16;
+
+      y = sectionHeader('Things I noted for myself', y);
+      y = renderChips(allPrivate, PRIV_BG, PRIV, [184,207,238], y);
+    }
+
+    // Footer on each page
+    const pageCount = doc.getNumberOfPages();
+    for (let i=1; i<=pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(...MUTED);
+      doc.text(`Brain in Hand — Work With Me profile — ${new Date().toLocaleDateString('en-GB')}`, margin, 290);
+      doc.text(`Page ${i} of ${pageCount}`, W-margin, 290, {align:'right'});
+    }
+
+    const fname = `work-with-me-${(userName||'profile').toLowerCase().replace(/\s+/g,'-')}.pdf`;
+    doc.save(fname);
+
+  } catch(err) {
+    console.error('PDF error:', err);
+    alert('Sorry — there was a problem creating your PDF. Please try again.');
+  }
+
+  document.body.removeChild(overlay);
+}
+
+/* ── Main render ─────────────────────────────────────────────────── */
 function render() {
   renderPips();
-  const app = document.getElementById('app');
-
-  if (currentStep >= STEPS.length) {
-    // Consent gate
-    app.innerHTML = renderConsentGate();
-    return;
+  window.scrollTo(0,0);
+  const app=document.getElementById('app');
+  if(currentStep>=steps.length){app.innerHTML=renderConsent();return;}
+  const s=steps[currentStep];
+  switch(s.type){
+    case 'intro':   app.innerHTML=renderIntro();   break;
+    case 'avatar':  app.innerHTML=renderAvatar();  break;
+    case 'branch':  app.innerHTML=renderBranch();  break;
+    case 'tiles':   app.innerHTML=renderTiles(s);  break;
+    case 'battery': app.innerHTML=renderBattery(); break;
+    case 'tod':     app.innerHTML=renderTOD();     break;
   }
-
-  const step = STEPS[currentStep];
-  switch (step.type) {
-    case 'intro':   app.innerHTML = renderIntro();   break;
-    case 'avatar':  app.innerHTML = renderAvatar();  break;
-    case 'tiles':   app.innerHTML = renderTiles(step); break;
-    case 'battery': app.innerHTML = renderBattery(); break;
-    case 'tod':     app.innerHTML = renderTOD();     break;
-  }
-
-  // Re-attach avatar picker listener after render
-  if (step.type === 'avatar') {
-    document.addEventListener('click', closePickerOnOutside, { once: true });
-  }
-
-  // Scroll to top on step change
-  window.scrollTo(0, 0);
 }
 
-/* ── Event handlers ─────────────────────────────────────── */
-function goNext() {
-  currentStep++;
-  render();
-}
-function goBack() {
-  if (currentStep > 0) { currentStep--; render(); }
-}
-
-function cycleTile(id, i) {
-  const m = tileAnswers[id];
-  const cur = m[i] || VS.NONE;
-  m[i] = cur >= VS.SKIP ? VS.NONE : cur + 1;
-  render();
-}
-
-function toggleCharge(i) {
-  const idx = chargeSelections.indexOf(i);
-  idx === -1 ? chargeSelections.push(i) : chargeSelections.splice(idx, 1);
-  reRenderBattery();
-}
-function toggleDrain(i) {
-  const idx = drainSelections.indexOf(i);
-  idx === -1 ? drainSelections.push(i) : drainSelections.splice(idx, 1);
-  reRenderBattery();
-}
-function setDrainMode(v) { drainMode = v; reRenderBattery(); }
-function reRenderBattery() {
-  document.getElementById('app').innerHTML = renderBattery();
-}
-
+/* ── Handlers ────────────────────────────────────────────────────── */
+function goNext()  { currentStep++; render(); }
+function goBack()  { if(currentStep>0){currentStep--;render();} }
+function setAvTab(t) { avatarTab=t; render(); }
+function pickAvatar(id) { avatarId=id; updateHdrAvatar(); render(); }
+function checkNext() { const b=document.getElementById('nn'); if(b)b.disabled=!userName.trim(); }
+function selectBranch(q,o) { branchAnswers[q]=o; render(); }
+function applyBranches() { steps=buildSteps(branchAnswers); resetTileAnswers(); goNext(); }
+function cycleTile(id,i) { const m=tileAnswers[id]; const c=m[i]||VS.NONE; m[i]=c>=VS.SKIP?VS.NONE:c+1; render(); }
+function toggleCharge(i) { const a=chargeSelections; const p=a.indexOf(i); p===-1?a.push(i):a.splice(p,1); reRenderBattery(); }
+function toggleDrain(i)  { const a=drainSelections;  const p=a.indexOf(i); p===-1?a.push(i):a.splice(p,1); reRenderBattery(); }
+function setDrainMode(v) { drainMode=v; reRenderBattery(); }
+function reRenderBattery() { document.getElementById('app').innerHTML=renderBattery(); }
 function toggleTOD(id) {
-  const pi = todPeaks.indexOf(id);
-  const li = todLows.indexOf(id);
-  if (pi === -1 && li === -1) { todPeaks.push(id); }
-  else if (pi !== -1) { todPeaks.splice(pi, 1); todLows.push(id); }
-  else { todLows.splice(li, 1); }
-  document.getElementById('app').innerHTML = renderTOD();
+  const pi=todPeaks.indexOf(id); const li=todLows.indexOf(id);
+  if(pi===-1&&li===-1){todPeaks.push(id);}
+  else if(pi!==-1){todPeaks.splice(pi,1);todLows.push(id);}
+  else{todLows.splice(li,1);}
+  document.getElementById('app').innerHTML=renderTOD();
 }
-
-function togglePicker(e) {
-  e.stopPropagation();
-  avatarPickerOpen = !avatarPickerOpen;
-  const picker = document.getElementById('av-picker');
-  if (picker) picker.style.display = avatarPickerOpen ? 'grid' : 'none';
-  if (avatarPickerOpen) {
-    document.addEventListener('click', closePickerOnOutside, { once: true });
-  }
-}
-function closePickerOnOutside() {
-  avatarPickerOpen = false;
-  const picker = document.getElementById('av-picker');
-  if (picker) picker.style.display = 'none';
-}
-function pickAvatar(e) {
-  avatarEmoji = e;
-  avatarPickerOpen = false;
-  render();
-}
-
-function toggleJD() { jdLoaded = !jdLoaded; render(); }
-
-function updateNextBtn() {
-  const btn = document.querySelector('.btn-next');
-  if (btn) btn.disabled = !userName.trim();
-}
-
 function toggleConsent() {
-  consentChecked = !consentChecked;
-  const cb = document.getElementById('consent-cb');
-  if (cb) cb.checked = consentChecked;
-  const pb = document.getElementById('pub-btn');
-  if (pb) pb.disabled = !consentChecked;
+  consentChecked=!consentChecked;
+  const cb=document.getElementById('cc'); if(cb)cb.checked=consentChecked;
+  const pb=document.getElementById('pb'); if(pb)pb.disabled=!consentChecked;
 }
-
 function publishProfile() {
-  if (!consentChecked) return;
+  if(!consentChecked)return;
+  document.getElementById('sc').textContent='Your profile';
   renderPips();
-  document.getElementById('step-counter').textContent = 'Your profile';
-  document.getElementById('app').innerHTML = renderProfile();
-  window.scrollTo(0, 0);
+  document.getElementById('app').innerHTML=renderProfile();
+  window.scrollTo(0,0);
 }
-
 function restart() {
-  currentStep = 0;
-  avatarEmoji = '🧠'; avatarPickerOpen = false;
-  userName = ''; userRole = ''; jdLoaded = false;
-  chargeLevel = 65; drainMode = false; consentChecked = false;
-  tileAnswers = {};
-  STEPS.forEach(s => { if (s.type === 'tiles') tileAnswers[s.id] = {}; });
-  chargeSelections = []; drainSelections = [];
-  todPeaks = []; todLows = [];
-  render();
+  currentStep=0; branchAnswers={working_pattern:null,social_comfort:null,meeting_load:null};
+  steps=buildSteps({working_pattern:'hybrid',social_comfort:'mixed',meeting_load:'medium'});
+  avatarId='p1'; avatarTab='people'; userName=''; userRole='';
+  chargeLevel=65; drainMode=false; consentChecked=false;
+  chargeSelections=[]; drainSelections=[]; todPeaks=[]; todLows=[];
+  resetTileAnswers(); render();
 }
-
-/* ── Keyboard accessibility on tiles ────────────────────── */
-document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' || e.key === ' ') {
-    const t = e.target;
-    if (t.classList.contains('tile') || t.classList.contains('tod-cell') ||
-        t.classList.contains('stog') || t.classList.contains('jd-box')) {
-      e.preventDefault();
-      t.click();
-    }
+document.addEventListener('keydown', e=>{
+  if(e.key==='Enter'||e.key===' '){
+    const t=e.target;
+    if(['tile','tod-cell','branch-opt','av-item','av-tab','stog'].some(c=>t.classList.contains(c))){e.preventDefault();t.click();}
   }
 });
-
-/* ── Boot ───────────────────────────────────────────────── */
 render();
 </script>
 </body>
