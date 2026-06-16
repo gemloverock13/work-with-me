@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Work With Me — Brain in Hand</title>
+<meta name="description" content="Build a working preferences profile that helps colleagues understand how to work well with you.">
+<style>
+/* ── Reset & tokens ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --plum:   #1B002E;
+  --purple: #8E3CCE;
+  --lilac:  #EAC1FF;
+  --pale:   #F5EAF9;
+  --amber:  #FFC962;
+  --yellow: #FFE95C;
+  --bg:     #FAF9F5;
+  --muted:  #6B5A7E;
+  --drain:  #E05555;
+  --priv:   #4A6FA5;
+  --priv-bg:#EEF3FB;
+  --priv-bd:#B8CFEE;
+  --radius: 10px;
+  --font: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  min-height: 100vh;
+  color: var(--plum);
+  -webkit-font-smoothing: antialiased;
+}
+button { font-family: var(--font); cursor: pointer; }
+input  { font-family: var(--font); }
+
+/* ── Layout shell ───────────────────────────────────────── */
+.shell {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+.hdr {
+  background: var(--plum);
+  padding: 1.25rem 1.25rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo {
+  color: var(--yellow);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.logo span {
+  color: rgba(255,255,255,.45);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  margin-left: 6px;
+}
+.step-counter {
+  font-size: 11px;
+  color: rgba(255,255,255,.4);
+}
+
+/* ── Progress pips ──────────────────────────────────────── */
+.pips {
+  background: var(--plum);
+  padding: 0 1.25rem 1rem;
+  display: flex;
+  gap: 5px;
+}
+.pip {
+  height: 3px;
+  border-radius: 2px;
+  flex: 1;
+  background: rgba(255,255,255,.15);
+  transition: background .3s;
+}
+.pip.done   { background: var(--yellow); }
+.pip.active { background: var(--lilac); }
+
+/* ── Section labels ─────────────────────────────────────── */
+.s-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--purple);
+  padding: 1.25rem 1.25rem .35rem;
+}
+.s-head {
+  font-size: 19px;
+  font-weight: 500;
+  color: var(--plum);
+  padding: 0 1.25rem .25rem;
+  line-height: 1.35;
+}
+.s-sub {
+  font-size: 12px;
+  color: var(--muted);
+  padding: 0 1.25rem 1rem;
+  line-height: 1.6;
+}
+
+/* ── Info card (intro / battery notice) ─────────────────── */
+.info-card {
+  margin: 0 1.25rem 1rem;
+  background: #fff;
+  border-radius: 12px;
+  border: .5px solid var(--lilac);
+  padding: 1rem 1.1rem;
+}
+.info-card p {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.65;
+  margin-bottom: .65rem;
+}
+.info-card p:last-child { margin-bottom: 0; }
+.info-card strong { color: var(--plum); font-weight: 500; }
+.info-card .small  { font-size: 11px; color: #9B8AAA; }
+
+/* ── Visibility legend ──────────────────────────────────── */
+.vis-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 1.25rem .75rem;
+}
+.vk-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.vk-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Tile grid ──────────────────────────────────────────── */
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(136px, 1fr));
+  gap: 7px;
+  padding: 0 1.25rem .5rem;
+}
+.tile {
+  background: #fff;
+  border: 1.5px solid #EDE0F5;
+  border-radius: var(--radius);
+  padding: 9px 9px 8px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-height: 66px;
+  -webkit-tap-highlight-color: transparent;
+}
+.tile:hover { border-color: var(--lilac); }
+.tile.vs-public  { border-color: var(--purple); background: var(--pale); }
+.tile.vs-private { border-color: var(--priv-bd); background: var(--priv-bg); }
+.tile.vs-skip    { border-color: #DDD3E8; background: #F7F3FB; opacity: .7; }
+.tile.drain-tile { border-color: #FAD7D7; }
+.tile.drain-tile.vs-public  { border-color: var(--drain); background: #FFF5F5; }
+.tile.drain-tile.vs-private { border-color: var(--priv-bd); background: var(--priv-bg); }
+
+.tile-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 4px;
+  width: 100%;
+}
+.tile-emoji { font-size: 17px; line-height: 1; flex-shrink: 0; }
+.tile-badge {
+  font-size: 9px;
+  font-weight: 500;
+  padding: 2px 5px;
+  border-radius: 4px;
+  white-space: nowrap;
+  line-height: 1.3;
+  flex-shrink: 0;
+}
+.vs-public  .tile-badge { background: var(--pale); color: var(--purple); border: .5px solid var(--lilac); }
+.vs-private .tile-badge { background: var(--priv-bg); color: var(--priv); border: .5px solid var(--priv-bd); }
+.vs-skip    .tile-badge { background: #EEE8F5; color: #9B8AAA; border: .5px solid #DDD3E8; }
+.tile-label {
+  font-size: 11px;
+  color: var(--plum);
+  line-height: 1.35;
+}
+.tile-hint {
+  font-size: 9px;
+  color: var(--muted);
+  line-height: 1.3;
+}
+.vs-public  .tile-hint { color: var(--purple); }
+.vs-private .tile-hint { color: var(--priv); }
+.vs-skip    .tile-hint { color: #9B8AAA; }
+
+/* ── Drain note ─────────────────────────────────────────── */
+.drain-note {
+  margin: 0 1.25rem .5rem;
+  background: #FFF5F5;
+  border: .5px solid #FFCDD2;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 11px;
+  color: #8B2020;
+  line-height: 1.55;
+}
+
+/* ── Nav row ────────────────────────────────────────────── */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem 1.5rem;
+  margin-top: auto;
+}
+.btn-back {
+  font-size: 12px;
+  color: var(--muted);
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.btn-next {
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+  background: var(--purple);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  transition: opacity .15s;
+}
+.btn-next:hover   { opacity: .88; }
+.btn-next:disabled { opacity: .35; cursor: not-allowed; }
+
+/* ── Avatar row ─────────────────────────────────────────── */
+.av-row {
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+  padding: 0 1.25rem 1rem;
+  position: relative;
+}
+.av-circle {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: var(--lilac);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  border: 2px solid var(--purple);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: transform .15s;
+  position: relative;
+}
+.av-circle:hover { transform: scale(1.05); }
+.av-picker {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+  padding: .6rem;
+  background: #fff;
+  border: .5px solid var(--lilac);
+  border-radius: 12px;
+  position: absolute;
+  top: 76px;
+  left: 0;
+  z-index: 50;
+  box-shadow: 0 4px 20px rgba(27,0,46,.12);
+}
+.av-picker button {
+  font-size: 19px;
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: none;
+  border-radius: 7px;
+  transition: background .12s;
+}
+.av-picker button:hover { background: var(--pale); }
+.name-input {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--plum);
+  border: none;
+  border-bottom: 1.5px solid var(--lilac);
+  background: transparent;
+  width: 100%;
+  padding: 3px 0;
+  outline: none;
+}
+.name-input:focus { border-bottom-color: var(--purple); }
+.role-input {
+  font-size: 12px;
+  color: var(--muted);
+  border: none;
+  border-bottom: 1px solid var(--lilac);
+  background: transparent;
+  width: 100%;
+  padding: 3px 0;
+  margin-top: 5px;
+  outline: none;
+}
+.role-input:focus { border-bottom-color: var(--purple); }
+
+/* ── JD upload box ──────────────────────────────────────── */
+.jd-box {
+  margin: .25rem 1.25rem 0;
+  border: 1.5px dashed var(--lilac);
+  border-radius: var(--radius);
+  padding: .85rem;
+  background: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  transition: border-color .15s;
+}
+.jd-box:hover { border-color: var(--purple); }
+.jd-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: var(--pale);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.jd-title { font-size: 12px; font-weight: 500; color: var(--plum); }
+.jd-sub   { font-size: 10px; color: var(--muted); margin-top: 1px; }
+.jd-badge {
+  font-size: 10px;
+  background: var(--amber);
+  color: var(--plum);
+  padding: 2px 7px;
+  border-radius: 20px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ── Battery section ────────────────────────────────────── */
+.bat-wrap { padding: 0 1.25rem 1rem; }
+.bat-label {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: .5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.bat-label strong { color: var(--plum); font-weight: 500; }
+input[type=range] {
+  width: 100%;
+  margin-bottom: 8px;
+  accent-color: var(--purple);
+}
+.bat-track {
+  height: 22px;
+  border-radius: 11px;
+  background: #EDE0F5;
+  overflow: hidden;
+  border: .5px solid var(--lilac);
+}
+.bat-fill {
+  height: 100%;
+  border-radius: 11px;
+  transition: width .25s, background .25s;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 8px;
+}
+.bat-fill span {
+  font-size: 10px;
+  font-weight: 500;
+  color: #fff;
+}
+.bat-tip {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 6px;
+  text-align: center;
+  font-style: italic;
+}
+.bat-notice {
+  margin: 0 1.25rem .75rem;
+  background: var(--priv-bg);
+  border: .5px solid var(--priv-bd);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 11px;
+  color: var(--priv);
+  line-height: 1.55;
+}
+.sec-toggle {
+  display: flex;
+  gap: 6px;
+  padding: 0 1.25rem .75rem;
+}
+.stog {
+  flex: 1;
+  padding: 8px 4px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  text-align: center;
+  transition: all .15s;
+}
+.stog.charge { background: var(--pale); color: var(--purple); border-color: var(--lilac); }
+.stog.charge.active { background: var(--purple); color: #fff; border-color: var(--purple); }
+.stog.drain  { background: #FFF5F5; color: #8B2020; border-color: #FFCDD2; }
+.stog.drain.active  { background: var(--drain); color: #fff; border-color: var(--drain); }
+
+/* ── Time of day ────────────────────────────────────────── */
+.tod-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 1.25rem .6rem;
+}
+.tod-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.tod-legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.tod-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding: 0 1.25rem .5rem;
+}
+.tod-cell {
+  background: #fff;
+  border: 1.5px solid #EDE0F5;
+  border-radius: 9px;
+  padding: 8px 6px;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color .15s, background .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.tod-cell:hover { border-color: var(--lilac); }
+.tod-cell.peak { border-color: var(--purple); background: var(--pale); }
+.tod-cell.low  { border-color: var(--drain); background: #FFF5F5; }
+.tod-time  { font-size: 9px; color: var(--muted); margin-bottom: 3px; }
+.tod-bar-wrap {
+  height: 28px;
+  border-radius: 4px;
+  background: #EDE0F5;
+  overflow: hidden;
+  position: relative;
+  margin: 2px 0;
+}
+.tod-bar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  border-radius: 4px;
+  transition: height .25s, background .25s;
+}
+.tod-name {
+  font-size: 9px;
+  font-weight: 500;
+  margin-top: 2px;
+}
+.tod-notice {
+  margin: .5rem 1.25rem 0;
+  background: var(--pale);
+  border: .5px solid var(--lilac);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+/* ── Consent gate ───────────────────────────────────────── */
+.consent-wrap { padding: 0 1.25rem; }
+.consent-card {
+  background: #fff;
+  border-radius: 12px;
+  border: 1.5px solid var(--purple);
+  overflow: hidden;
+}
+.consent-hdr {
+  background: var(--purple);
+  padding: .9rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.consent-hdr-icon { font-size: 18px; }
+.consent-hdr-txt  { font-size: 13px; font-weight: 500; color: #fff; }
+.consent-body { padding: 1rem; }
+.consent-body p {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.65;
+  margin-bottom: .65rem;
+}
+.consent-body p:last-of-type { margin-bottom: 0; }
+.consent-body strong { color: var(--plum); font-weight: 500; }
+.consent-check-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 1rem;
+  padding: .8rem;
+  background: var(--pale);
+  border: .5px solid var(--lilac);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.consent-check-wrap input { margin-top: 1px; accent-color: var(--purple); flex-shrink: 0; }
+.consent-check-wrap label { font-size: 11px; color: var(--plum); line-height: 1.5; cursor: pointer; }
+.consent-btns { display: flex; gap: 8px; margin-top: 1rem; }
+.btn-publish {
+  flex: 1;
+  background: var(--purple);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  transition: opacity .15s;
+}
+.btn-publish:hover   { opacity: .88; }
+.btn-publish:disabled { opacity: .35; cursor: not-allowed; }
+.btn-go-back {
+  flex: 1;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  border: .5px solid var(--lilac);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+/* ── Profile card ───────────────────────────────────────── */
+.profile-card {
+  margin: .75rem 1.25rem 0;
+  background: #fff;
+  border-radius: 14px;
+  border: .5px solid var(--lilac);
+  overflow: hidden;
+}
+.profile-hdr {
+  background: var(--plum);
+  padding: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.profile-av {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--lilac);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  border: 2px solid rgba(255,255,255,.25);
+  flex-shrink: 0;
+}
+.profile-name { font-size: 15px; font-weight: 500; color: #fff; }
+.profile-role { font-size: 11px; color: var(--lilac); margin-top: 2px; }
+.profile-bih  { font-size: 10px; color: var(--yellow); margin-top: 5px; opacity: .75; }
+.profile-body { padding: 1.1rem; display: flex; flex-direction: column; gap: .9rem; }
+.profile-section-title {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--purple);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip {
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  background: var(--pale);
+  color: var(--plum);
+  border: .5px solid var(--lilac);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.chip-drain { background: #FFF5F5; border-color: #FFCDD2; color: #8B2020; }
+.chip-energy { background: #FFF8E1; border-color: var(--amber); color: #5D3A00; }
+.chip-peak  { background: var(--pale); border-color: var(--purple); color: var(--plum); }
+
+.profile-caveat {
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.55;
+  background: var(--pale);
+  border-radius: 7px;
+  padding: 9px 11px;
+  border: .5px solid var(--lilac);
+}
+.private-note {
+  margin: .75rem 1.25rem 0;
+  background: var(--priv-bg);
+  border: .5px solid var(--priv-bd);
+  border-radius: 10px;
+  padding: .85rem 1rem;
+}
+.private-note-title {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--priv);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.btn-action {
+  margin: .85rem 1.25rem 0;
+  width: calc(100% - 2.5rem);
+  background: var(--plum);
+  color: var(--yellow);
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  border-radius: 9px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  transition: opacity .15s;
+}
+.btn-action:hover { opacity: .9; }
+.btn-restart {
+  margin: .6rem 1.25rem 0;
+  width: calc(100% - 2.5rem);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  border: .5px solid var(--lilac);
+  border-radius: 9px;
+  padding: 10px;
+}
+.spacer { height: 2.5rem; }
+
+/* ── Accessibility ──────────────────────────────────────── */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border-width: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; }
+}
+@media (max-width: 500px) {
+  .tile-grid { grid-template-columns: repeat(2, 1fr); }
+  .tod-grid  { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+<div class="shell" id="shell">
+  <header class="hdr" role="banner">
+    <div class="logo">Brain in Hand <span>· Work With Me</span></div>
+    <div class="step-counter" id="step-counter" aria-live="polite">Step 1 of 9</div>
+  </header>
+  <div class="pips" id="pips" role="progressbar" aria-label="Profile progress"></div>
+  <main id="app" role="main"></main>
+</div>
+
+<script>
+/* ── Data ───────────────────────────────────────────────── */
+const AVATARS = ['🧠','🌟','🦋','🌿','🎯','🦄','🐙','🦊','🌈','🐺','🌙','⚡','🍀','🎨','🦁','🐸','🌻','🎵','🦅','🌊'];
+
+const VS = { NONE: 0, PUBLIC: 1, PRIVATE: 2, SKIP: 3 };
+const VS_LABEL  = ['', 'On my profile', 'I know — not shared', 'I\'d rather not say'];
+const VS_SHORT  = ['', 'Profile', 'Private', 'Skip'];
+const VS_HINT   = ['', 'Visible on your profile', 'Noted for yourself only', 'Not included'];
+
+const CHARGE_TILES = [
+  { e: '🎵', l: 'Music or background sound while I work' },
+  { e: '🌿', l: 'Time outside between tasks' },
+  { e: '🤝', l: 'A good one-to-one conversation' },
+  { e: '📝', l: 'Time to write and organise my thoughts' },
+  { e: '🎯', l: 'Clear goals and visible progress' },
+  { e: '🧩', l: 'A complex problem to get into' },
+  { e: '🔇', l: 'A quiet period with no meetings' },
+  { e: '☕', l: 'A gentle start before diving in' },
+  { e: '🏃', l: 'Moving my body during the day' },
+  { e: '🌟', l: 'Positive acknowledgement when it\'s due' },
+  { e: '🔋', l: 'Knowing what\'s coming — no surprises' },
+  { e: '🛋️', l: 'Working from my own space' },
+];
+
+const DRAIN_TILES = [
+  { e: '🔔', l: 'Constant notifications pulling my attention' },
+  { e: '🗣️', l: 'A lot of unplanned conversation' },
+  { e: '📞', l: 'Unexpected calls' },
+  { e: '🎉', l: 'Busy or loud social situations' },
+  { e: '🔀', l: 'Switching between lots of different tasks' },
+  { e: '⏰', l: 'Unclear or shifting deadlines' },
+  { e: '🧱', l: 'Ambiguity without support to navigate it' },
+  { e: '📢', l: 'Loud or open-plan environments' },
+  { e: '👁️', l: 'Feeling observed or monitored closely' },
+  { e: '🤷', l: 'Not knowing the reason behind a task' },
+  { e: '📹', l: 'Camera being required in meetings' },
+  { e: '🔄', l: 'Last-minute changes with no warning' },
+];
+
+const TOD_SLOTS = [
+  { id: 'early',     label: 'Early morning', time: '6–9am',  def: 20 },
+  { id: 'morning',   label: 'Mid-morning',   time: '9–12',   def: 85 },
+  { id: 'lunch',     label: 'Lunchtime',     time: '12–2',   def: 45 },
+  { id: 'afternoon', label: 'Afternoon',     time: '2–5pm',  def: 65 },
+  { id: 'late',      label: 'Late afternoon',time: '5–7pm',  def: 38 },
+  { id: 'evening',   label: 'Evening',       time: '7pm+',   def: 25 },
+];
+
+const STEPS = [
+  { id: 'welcome',  label: 'Welcome',              type: 'intro' },
+  { id: 'you',      label: 'About you',            type: 'avatar' },
+  { id: 'contact',  label: 'Communication',        type: 'tiles',
+    head: 'It helps me when people reach out in a way that suits me',
+    sub:  'Tap each tile to cycle through: show it on your profile, keep it for yourself, or skip it.',
+    tiles: [
+      { e: '💬', l: 'Quick messages on Teams or Slack work well' },
+      { e: '✉️', l: 'Email works better for anything complex' },
+      { e: '📞', l: 'A call is fine — a heads-up first helps' },
+      { e: '🚫', l: 'Unannounced calls are hard for me' },
+      { e: '📅', l: 'Booking ahead works better than dropping in' },
+      { e: '💌', l: 'A written summary after conversations helps' },
+      { e: '🎧', l: 'I\'m often in deep focus — response time may vary' },
+      { e: '🌅', l: 'I\'m sharper in the morning' },
+      { e: '🌆', l: 'Afternoons tend to work better for me' },
+      { e: '🔕', l: 'Slow replies aren\'t personal — it\'s how I work' },
+      { e: '📋', l: 'Context or a clear subject line upfront helps a lot' },
+    ]
+  },
+  { id: 'battery',  label: 'Energy',               type: 'battery' },
+  { id: 'social',   label: 'Social & remote',      type: 'tiles', drain: true,
+    head: 'The social side of work — being honest about what costs me',
+    sub:  'Some things are harder than they look from the outside. You choose what, if anything, appears on your profile.',
+    tiles: [
+      { e: '🍽️', l: 'Eating together at work takes effort for me' },
+      { e: '🚂', l: 'Group travel is stressful' },
+      { e: '🎉', l: 'I come to social events — but they cost me energy' },
+      { e: '☕', l: 'Starting small talk doesn\'t come naturally' },
+      { e: '🤐', l: 'I\'m quieter than I look — I\'m not unhappy' },
+      { e: '😶', l: 'My face doesn\'t always show how I\'m feeling' },
+      { e: '🤝', l: 'Networking situations are genuinely tiring' },
+      { e: '🪑', l: 'Busy, open-plan spaces wear me out' },
+      { e: '📹', l: 'Camera-on for long calls takes a lot' },
+      { e: '🎭', l: 'Presenting as "fine" uses real energy' },
+      { e: '🌐', l: 'Remote working suits me better overall' },
+      { e: '🏢', l: 'Office days are manageable but I recover from them' },
+      { e: '🧍', l: 'One-to-one feels safer than group settings' },
+      { e: '👂', l: 'I tend to listen more than speak — I am engaged' },
+      { e: '🗣️', l: 'I need a beat before speaking up in groups' },
+    ]
+  },
+  { id: 'meetings', label: 'Meetings',             type: 'tiles',
+    head: 'It helps me in meetings when',
+    sub:  'Remote or in-person. What do you actually need to show up well?',
+    tiles: [
+      { e: '📋', l: 'An agenda comes in advance' },
+      { e: '🎯', l: 'The purpose is stated at the start' },
+      { e: '📹', l: 'Camera is optional, not required' },
+      { e: '⏱️', l: 'We start and finish on time' },
+      { e: '👋', l: 'There are brief intros — I don\'t always recognise voices' },
+      { e: '🧘', l: 'There\'s a break in anything over 45 minutes' },
+      { e: '⏳', l: 'I\'m given time to think before being asked to respond' },
+      { e: '📝', l: 'Notes or a recording are shared afterwards' },
+      { e: '🔇', l: 'Background is quiet enough for me to process' },
+      { e: '🙋', l: 'There\'s a clear way to signal I want to speak' },
+      { e: '🔁', l: 'What was agreed is recapped at the end' },
+      { e: '🚫', l: 'Back-to-back meetings are avoided where possible' },
+      { e: '1️⃣', l: 'One conversation happens at a time' },
+    ]
+  },
+  { id: 'feedback', label: 'Feedback & info',      type: 'tiles',
+    head: 'It helps me when feedback and information arrive in a way I can process',
+    sub:  'Not the polished version — what does your brain actually need?',
+    tiles: [
+      { e: '✍️', l: 'It\'s in writing so I can take it in without pressure' },
+      { e: '🤝', l: 'It\'s face to face so I can read the tone' },
+      { e: '🎯', l: 'It\'s specific and direct — softening can confuse me' },
+      { e: '🌍', l: 'The big picture comes before the detail' },
+      { e: '🔍', l: 'The detail comes first — context can follow' },
+      { e: '⏳', l: 'I\'m given time to process before I respond' },
+      { e: '📊', l: 'A visual or diagram alongside words helps' },
+      { e: '🔄', l: 'I can ask follow-ups without it seeming slow' },
+      { e: '🤐', l: 'Going quiet means I\'m processing — not disengaged' },
+      { e: '🏆', l: 'What\'s working is named alongside what isn\'t' },
+      { e: '📅', l: 'It\'s not dropped on me without any warning' },
+      { e: '🔇', l: 'It happens privately, not in a group setting' },
+    ]
+  },
+  { id: 'time',     label: 'Energy through the day', type: 'tod' },
+  { id: 'know',     label: 'Good to know',          type: 'tiles',
+    head: 'Things colleagues should know — but rarely ask',
+    sub:  'The stuff that explains behaviour that might otherwise be misread. You choose what goes on your profile.',
+    tiles: [
+      { e: '🤫', l: 'Silence usually means I\'m thinking — not withdrawing' },
+      { e: '⚡', l: 'I can seem intense — it\'s almost always enthusiasm' },
+      { e: '🧐', l: 'Lots of questions means I\'m engaged, not difficult' },
+      { e: '🌀', l: 'Change takes me a bit longer to land — early notice helps' },
+      { e: '🎭', l: 'I mask well — please still check in on me' },
+      { e: '📢', l: 'I need to say when something\'s wrong — it\'s not drama' },
+      { e: '💜', l: 'I care a lot — sometimes that\'s visible' },
+      { e: '🗣️', l: 'Knowing the why behind something matters to me' },
+      { e: '🛡️', l: 'Being direct is how I show respect — not rudeness' },
+      { e: '🔋', l: 'Low battery days happen — I\'ll flag when I can' },
+      { e: '☀️', l: 'A "good morning" out of nowhere can be hard to respond to' },
+      { e: '🤗', l: 'I appreciate being checked on — don\'t assume I\'m fine' },
+      { e: '🔒', l: 'I need to feel safe before I open up — it\'s not a slight' },
+    ]
+  },
+];
+
+/* ── State ──────────────────────────────────────────────── */
+let currentStep = 0;
+let avatarEmoji = '🧠';
+let avatarPickerOpen = false;
+let userName = '';
+let userRole = '';
+let jdLoaded = false;
+let chargeLevel = 65;
+let drainMode = false;
+let consentChecked = false;
+let tileAnswers = {};
+STEPS.forEach(s => { if (s.type === 'tiles') tileAnswers[s.id] = {}; });
+let chargeSelections = [];
+let drainSelections = [];
+let todPeaks = [];
+let todLows = [];
+
+/* ── Utilities ──────────────────────────────────────────── */
+function batColor(p) {
+  return p > 60 ? 'var(--purple)' : p > 30 ? 'var(--amber)' : 'var(--drain)';
+}
+function batTip(p) {
+  if (p >= 80) return 'Running well — protecting this is worth thinking about.';
+  if (p >= 60) return 'Decent baseline. Small changes can make a real difference.';
+  if (p >= 40) return 'Some depletion. Worth noticing what\'s costing most right now.';
+  if (p >= 20) return 'Running low. Your organisation\'s support processes may help.';
+  return 'Very depleted — your organisation\'s support processes are worth exploring.';
+}
+function countPublic() {
+  let n = 0;
+  ['contact','social','meetings','feedback','know'].forEach(id => {
+    Object.values(tileAnswers[id] || {}).forEach(v => { if (v === VS.PUBLIC) n++; });
+  });
+  n += chargeSelections.length + drainSelections.length;
+  if (todPeaks.length || todLows.length) n++;
+  return n;
+}
+function getPublicTiles(id) {
+  const step = STEPS.find(s => s.id === id);
+  return Object.entries(tileAnswers[id] || {})
+    .filter(([, v]) => v === VS.PUBLIC)
+    .map(([k]) => step.tiles[parseInt(k)]);
+}
+function getPrivateTiles(id) {
+  const step = STEPS.find(s => s.id === id);
+  return Object.entries(tileAnswers[id] || {})
+    .filter(([, v]) => v === VS.PRIVATE)
+    .map(([k]) => step.tiles[parseInt(k)]);
+}
+
+/* ── Rendering helpers ──────────────────────────────────── */
+function renderPips() {
+  const pipsEl = document.getElementById('pips');
+  pipsEl.innerHTML = '';
+  STEPS.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'pip' + (i < currentStep ? ' done' : i === currentStep ? ' active' : '');
+    pipsEl.appendChild(d);
+  });
+  document.getElementById('step-counter').textContent =
+    currentStep < STEPS.length
+      ? `Step ${currentStep + 1} of ${STEPS.length}`
+      : 'Review';
+}
+
+function chipHtml(tiles, cls = '') {
+  return tiles.map(t => `<div class="chip ${cls}">${t.e} ${t.l}</div>`).join('');
+}
+
+function tileGridHtml(stepId, tiles, isDrain) {
+  const map = tileAnswers[stepId] || {};
+  return tiles.map((t, i) => {
+    const v = map[i] || VS.NONE;
+    const vsClass = v === VS.PUBLIC ? ' vs-public' : v === VS.PRIVATE ? ' vs-private' : v === VS.SKIP ? ' vs-skip' : '';
+    const drainClass = isDrain ? ' drain-tile' : '';
+    return `<div class="tile${drainClass}${vsClass}" onclick="cycleTile('${stepId}',${i})" role="button" tabindex="0" aria-label="${t.l}: ${VS_LABEL[v] || 'not set'}">
+      <div class="tile-top">
+        <span class="tile-emoji" aria-hidden="true">${t.e}</span>
+        ${v > VS.NONE ? `<span class="tile-badge" aria-hidden="true">${VS_SHORT[v]}</span>` : ''}
+      </div>
+      <div class="tile-label">${t.l}</div>
+      ${v > VS.NONE ? `<div class="tile-hint" aria-hidden="true">${VS_HINT[v]}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function visKeyHtml() {
+  return `<div class="vis-key" aria-hidden="true">
+    <div class="vk-item"><div class="vk-dot" style="background:#DDD3E8"></div>Not set</div>
+    <div class="vk-item"><div class="vk-dot" style="background:var(--purple)"></div>On my profile</div>
+    <div class="vk-item"><div class="vk-dot" style="background:var(--priv)"></div>I know — not shared</div>
+    <div class="vk-item"><div class="vk-dot" style="background:#9B8AAA"></div>I'd rather not say</div>
+  </div>`;
+}
+
+function navHtml(showBack = true, nextLabel = 'Next →', nextDisabled = false) {
+  return `<div class="nav">
+    ${showBack ? `<button class="btn-back" onclick="goBack()">← Back</button>` : '<span></span>'}
+    <button class="btn-next" onclick="goNext()" ${nextDisabled ? 'disabled' : ''}>${nextLabel}</button>
+  </div>`;
+}
+
+/* ── Step renderers ─────────────────────────────────────── */
+function renderIntro() {
+  return `
+    <div class="s-label">Welcome</div>
+    <div class="s-head">Your Work With Me profile</div>
+    <div class="info-card">
+      <p>This profile helps colleagues understand how to work well with you. It covers working preferences — not medical information or diagnoses.</p>
+      <p><strong>You are in control throughout.</strong> For every item, you choose: put it on your profile, keep it for your own reflection only, or skip it entirely. Nothing goes anywhere without your explicit agreement at the end.</p>
+      <p>At the end, before anything is published, you'll be asked to review and confirm exactly what appears on your profile. You can change your mind at any point.</p>
+      <p>If anything on your profile connects to a working pattern that feels significant to you, your organisation's usual support processes are the right place to explore that further.</p>
+      <p class="small">This tool does not replace Access to Work, Occupational Health, or any medical or legal process. It is a working preferences profile only.</p>
+    </div>
+    <div class="nav"><span></span><button class="btn-next" onclick="goNext()">Let's start →</button></div>
+    <div class="spacer"></div>`;
+}
+
+function renderAvatar() {
+  return `
+    <div class="s-label">About you</div>
+    <div class="s-head">Let's start with you</div>
+    <div class="s-sub">Pick an avatar and add your name. Your role is optional.</div>
+    <div class="av-row">
+      <div class="av-circle" id="av-btn" onclick="togglePicker(event)" aria-label="Choose avatar" role="button" tabindex="0">
+        <span id="av-emoji">${avatarEmoji}</span>
+        <div class="av-picker" id="av-picker" style="display:none" role="listbox" aria-label="Choose an avatar">
+          ${AVATARS.map(e => `<button onclick="pickAvatar('${e}');event.stopPropagation()" aria-label="${e}" role="option">${e}</button>`).join('')}
+        </div>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Tap to pick an avatar that feels like you</div>
+        <input class="name-input" id="name-input" placeholder="Your name" value="${userName}"
+          oninput="userName=this.value;updateNextBtn()" aria-label="Your name">
+        <input class="role-input" placeholder="Your role — optional" value="${userRole}"
+          oninput="userRole=this.value" aria-label="Your role (optional)">
+      </div>
+    </div>
+    <div class="jd-box" onclick="toggleJD()" role="button" tabindex="0" aria-label="${jdLoaded ? 'Job description loaded' : 'Upload job description'}">
+      <div class="jd-icon" aria-hidden="true">📄</div>
+      <div>
+        <div class="jd-title">${jdLoaded ? 'Job description loaded' : 'Upload your job description'}</div>
+        <div class="jd-sub">${jdLoaded ? 'Tiles tailored to your role' : 'Optional — helps personalise your tiles'}</div>
+      </div>
+      ${jdLoaded ? '<div class="jd-badge">Active</div>' : '<div style="font-size:11px;color:var(--muted)">+ Add</div>'}
+    </div>
+    ${navHtml(true, 'Next →', !userName.trim())}
+    <div class="spacer"></div>`;
+}
+
+function renderTiles(step) {
+  return `
+    <div class="s-label">${step.label}</div>
+    <div class="s-head">${step.head}</div>
+    <div class="s-sub">${step.sub}</div>
+    ${visKeyHtml()}
+    <div class="tile-grid">${tileGridHtml(step.id, step.tiles, step.drain)}</div>
+    ${step.drain ? `<div class="drain-note">Selecting these helps colleagues understand what costs you energy. You decide what, if anything, appears on your profile.</div>` : ''}
+    ${navHtml()}
+    <div class="spacer"></div>`;
+}
+
+function renderBattery() {
+  const pct = chargeLevel;
+  const bCol = batColor(pct);
+  const tiles = drainMode ? DRAIN_TILES : CHARGE_TILES;
+  const selArr = drainMode ? drainSelections : chargeSelections;
+  return `
+    <div class="s-label">Energy</div>
+    <div class="s-head">What fills my tank — and what empties it</div>
+    <div class="s-sub">For your own reflection. You decide what, if anything, goes on your profile.</div>
+    <div class="bat-wrap">
+      <div class="bat-label">
+        <span>In general, how charged do you feel at work?</span>
+        <strong>${pct}%</strong>
+      </div>
+      <input type="range" min="0" max="100" value="${pct}" step="5"
+        oninput="chargeLevel=parseInt(this.value);reRenderBattery()"
+        aria-label="Energy level ${pct}%">
+      <div class="bat-track">
+        <div class="bat-fill" id="bat-fill" style="width:${pct}%;background:${bCol}">
+          <span>${pct}%</span>
+        </div>
+      </div>
+      <div class="bat-tip" id="bat-tip">${batTip(pct)}</div>
+    </div>
+    <div class="bat-notice">Your energy level is for your own reflection. You choose whether it appears on your profile at the end.</div>
+    <div class="sec-toggle">
+      <div class="stog charge${!drainMode ? ' active' : ''}" onclick="setDrainMode(false)" role="button" tabindex="0">⚡ What charges me</div>
+      <div class="stog drain${drainMode ? ' active' : ''}" onclick="setDrainMode(true)" role="button" tabindex="0">🔋 What drains me</div>
+    </div>
+    <div class="tile-grid">
+      ${tiles.map((t, i) => {
+        const isSel = selArr.includes(i);
+        return `<div class="tile${isSel ? ' vs-public' : ''}${drainMode ? ' drain-tile' : ''}"
+          onclick="${drainMode ? `toggleDrain(${i})` : `toggleCharge(${i})`}"
+          role="button" tabindex="0" aria-pressed="${isSel}">
+          <div class="tile-top">
+            <span class="tile-emoji" aria-hidden="true">${t.e}</span>
+            ${isSel ? '<span class="tile-badge">Profile</span>' : ''}
+          </div>
+          <div class="tile-label">${t.l}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    ${navHtml()}
+    <div class="spacer"></div>`;
+}
+
+function renderTOD() {
+  return `
+    <div class="s-label">Energy through the day</div>
+    <div class="s-head">When my energy shows up — and when it doesn't</div>
+    <div class="s-sub">Tap once for peak energy, again for low, again to clear.</div>
+    <div class="tod-legend" aria-hidden="true">
+      <div class="tod-legend-item"><div class="tod-legend-dot" style="background:var(--purple)"></div>Peak — tap once</div>
+      <div class="tod-legend-item"><div class="tod-legend-dot" style="background:var(--drain)"></div>Low — tap twice</div>
+      <div class="tod-legend-item"><div class="tod-legend-dot" style="background:#DDD3E8"></div>Clear — tap three times</div>
+    </div>
+    <div class="tod-grid">
+      ${TOD_SLOTS.map(t => {
+        const isPk = todPeaks.includes(t.id);
+        const isLw = todLows.includes(t.id);
+        const bH = isPk ? 88 : isLw ? 12 : t.def;
+        const bC = isPk ? 'var(--purple)' : isLw ? 'var(--drain)' : '#DDD3E8';
+        const cellClass = isPk ? ' peak' : isLw ? ' low' : '';
+        const nameCol = isPk ? 'var(--purple)' : isLw ? 'var(--drain)' : 'var(--muted)';
+        return `<div class="tod-cell${cellClass}" onclick="toggleTOD('${t.id}')"
+          role="button" tabindex="0"
+          aria-label="${t.label} ${t.time}: ${isPk ? 'peak' : isLw ? 'low' : 'not set'}">
+          <div class="tod-time">${t.time}</div>
+          <div class="tod-bar-wrap">
+            <div class="tod-bar" style="height:${bH}%;background:${bC}"></div>
+          </div>
+          <div class="tod-name" style="color:${nameCol}">${t.label}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="tod-notice">This helps colleagues think about timing — when to have important conversations or set key deadlines. It doesn't ask your employer to change your contracted hours.</div>
+    ${navHtml()}
+    <div class="spacer"></div>`;
+}
+
+function renderConsentGate() {
+  const pub = countPublic();
+  document.getElementById('step-counter').textContent = 'Review';
+  return `
+    <div class="s-label">Before you publish</div>
+    <div class="s-head">Review and agree before your profile goes live</div>
+    <div class="s-sub">You have chosen <strong>${pub} item${pub !== 1 ? 's' : ''}</strong> to appear on your public profile. Everything else stays private or has been skipped.</div>
+    <div class="consent-wrap">
+      <div class="consent-card">
+        <div class="consent-hdr">
+          <span class="consent-hdr-icon" aria-hidden="true">🔒</span>
+          <div class="consent-hdr-txt">Your agreement before publishing</div>
+        </div>
+        <div class="consent-body">
+          <p>Publishing this profile means colleagues in your organisation will be able to see the items you've marked as <strong>"On my profile."</strong></p>
+          <p>This is a <strong>working preferences profile.</strong> It is not a medical disclosure, and it does not replace any of your organisation's existing processes for workplace support. If any of the preferences you've identified feel significant to you, your organisation's usual support processes are the right place to explore what help might look like.</p>
+          <p>You can update or remove your profile at any time.</p>
+          <div class="consent-check-wrap" onclick="toggleConsent()">
+            <input type="checkbox" id="consent-cb" ${consentChecked ? 'checked' : ''}
+              onchange="toggleConsent()" onclick="event.stopPropagation()"
+              aria-label="I agree to publish my profile">
+            <label for="consent-cb">I understand what this profile is and is not. I agree to publish the items I have marked as "On my profile" to colleagues in my organisation.</label>
+          </div>
+          <div class="consent-btns">
+            <button class="btn-publish" id="pub-btn" onclick="publishProfile()" ${consentChecked ? '' : 'disabled'}>Publish my profile</button>
+            <button class="btn-go-back" onclick="goBack()">← Go back and edit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="spacer"></div>`;
+}
+
+function renderProfile() {
+  const pct = chargeLevel;
+  const bCol = batColor(pct);
+  const charges = chargeSelections.map(i => CHARGE_TILES[i]);
+  const drains  = drainSelections.map(i => DRAIN_TILES[i]);
+  const peaks   = todPeaks.map(id => TOD_SLOTS.find(t => t.id === id));
+  const lows    = todLows.map(id => TOD_SLOTS.find(t => t.id === id));
+
+  const sections = [
+    { id: 'contact',  title: 'It helps me when people reach out' },
+    { id: 'meetings', title: 'Meetings work better when' },
+    { id: 'feedback', title: 'Receiving feedback and information' },
+    { id: 'social',   title: 'Social context' },
+    { id: 'know',     title: 'Good to know about me' },
+  ];
+
+  const allPrivate = [];
+  ['contact','social','meetings','feedback','know'].forEach(id => {
+    getPrivateTiles(id).forEach(t => allPrivate.push(t));
+  });
+
+  let body = `
+    <div class="s-label">Published profile</div>
+    <div class="s-sub" style="padding-top:0">This is what colleagues in your organisation can see.</div>
+    <div class="profile-card">
+      <div class="profile-hdr">
+        <div class="profile-av" aria-hidden="true">${avatarEmoji}</div>
+        <div>
+          <div class="profile-name">${userName || 'Your name'}</div>
+          ${userRole ? `<div class="profile-role">${userRole}</div>` : ''}
+          <div class="profile-bih">Work With Me · Brain in Hand</div>
+        </div>
+      </div>
+      <div class="profile-body">`;
+
+  // Energy bar
+  body += `<div>
+    <div class="profile-section-title">Energy level</div>
+    <div style="height:18px;border-radius:9px;background:#EDE0F5;overflow:hidden;border:.5px solid var(--lilac)">
+      <div style="height:100%;width:${pct}%;background:${bCol};border-radius:9px;display:flex;align-items:center;justify-content:flex-end;padding-right:7px">
+        <span style="font-size:9px;font-weight:500;color:#fff">${pct}%</span>
+      </div>
+    </div>
+  </div>`;
+
+  if (charges.length) body += `<div><div class="profile-section-title">What charges me</div><div class="chips">${chipHtml(charges)}</div></div>`;
+  if (drains.length)  body += `<div><div class="profile-section-title">What drains me</div><div class="chips">${chipHtml(drains, 'chip-drain')}</div></div>`;
+
+  if (peaks.length || lows.length) {
+    body += `<div><div class="profile-section-title">Energy through the day</div><div class="chips">`;
+    peaks.forEach(t => { body += `<div class="chip chip-peak">⚡ ${t.label} — peak</div>`; });
+    lows.forEach(t  => { body += `<div class="chip chip-drain">🔋 ${t.label} — low</div>`; });
+    body += `</div></div>`;
+  }
+
+  sections.forEach(sec => {
+    const pub = getPublicTiles(sec.id);
+    if (pub.length) {
+      body += `<div><div class="profile-section-title">${sec.title}</div><div class="chips">${chipHtml(pub)}</div></div>`;
+    }
+  });
+
+  body += `<div class="profile-caveat">This is a working preferences profile only. It is not a medical disclosure, a legal document, or a record of any workplace process. It does not replace Access to Work, Occupational Health, or any other support process your organisation has in place.</div>
+      </div>
+    </div>`;
+
+  if (allPrivate.length) {
+    body += `<div class="private-note">
+      <div class="private-note-title">🔒 Your private notes — only visible to you</div>
+      <div class="chips">${allPrivate.map(t => `<div class="chip" style="background:var(--priv-bg);border-color:var(--priv-bd);color:var(--priv)">${t.e} ${t.l}</div>`).join('')}</div>
+    </div>`;
+  }
+
+  body += `<button class="btn-action" onclick="window.print()">⬇ Save or print my profile</button>
+    <button class="btn-restart" onclick="restart()">Start again</button>
+    <div class="spacer"></div>`;
+
+  return body;
+}
+
+/* ── Main render ────────────────────────────────────────── */
+function render() {
+  renderPips();
+  const app = document.getElementById('app');
+
+  if (currentStep >= STEPS.length) {
+    // Consent gate
+    app.innerHTML = renderConsentGate();
+    return;
+  }
+
+  const step = STEPS[currentStep];
+  switch (step.type) {
+    case 'intro':   app.innerHTML = renderIntro();   break;
+    case 'avatar':  app.innerHTML = renderAvatar();  break;
+    case 'tiles':   app.innerHTML = renderTiles(step); break;
+    case 'battery': app.innerHTML = renderBattery(); break;
+    case 'tod':     app.innerHTML = renderTOD();     break;
+  }
+
+  // Re-attach avatar picker listener after render
+  if (step.type === 'avatar') {
+    document.addEventListener('click', closePickerOnOutside, { once: true });
+  }
+
+  // Scroll to top on step change
+  window.scrollTo(0, 0);
+}
+
+/* ── Event handlers ─────────────────────────────────────── */
+function goNext() {
+  currentStep++;
+  render();
+}
+function goBack() {
+  if (currentStep > 0) { currentStep--; render(); }
+}
+
+function cycleTile(id, i) {
+  const m = tileAnswers[id];
+  const cur = m[i] || VS.NONE;
+  m[i] = cur >= VS.SKIP ? VS.NONE : cur + 1;
+  render();
+}
+
+function toggleCharge(i) {
+  const idx = chargeSelections.indexOf(i);
+  idx === -1 ? chargeSelections.push(i) : chargeSelections.splice(idx, 1);
+  reRenderBattery();
+}
+function toggleDrain(i) {
+  const idx = drainSelections.indexOf(i);
+  idx === -1 ? drainSelections.push(i) : drainSelections.splice(idx, 1);
+  reRenderBattery();
+}
+function setDrainMode(v) { drainMode = v; reRenderBattery(); }
+function reRenderBattery() {
+  document.getElementById('app').innerHTML = renderBattery();
+}
+
+function toggleTOD(id) {
+  const pi = todPeaks.indexOf(id);
+  const li = todLows.indexOf(id);
+  if (pi === -1 && li === -1) { todPeaks.push(id); }
+  else if (pi !== -1) { todPeaks.splice(pi, 1); todLows.push(id); }
+  else { todLows.splice(li, 1); }
+  document.getElementById('app').innerHTML = renderTOD();
+}
+
+function togglePicker(e) {
+  e.stopPropagation();
+  avatarPickerOpen = !avatarPickerOpen;
+  const picker = document.getElementById('av-picker');
+  if (picker) picker.style.display = avatarPickerOpen ? 'grid' : 'none';
+  if (avatarPickerOpen) {
+    document.addEventListener('click', closePickerOnOutside, { once: true });
+  }
+}
+function closePickerOnOutside() {
+  avatarPickerOpen = false;
+  const picker = document.getElementById('av-picker');
+  if (picker) picker.style.display = 'none';
+}
+function pickAvatar(e) {
+  avatarEmoji = e;
+  avatarPickerOpen = false;
+  render();
+}
+
+function toggleJD() { jdLoaded = !jdLoaded; render(); }
+
+function updateNextBtn() {
+  const btn = document.querySelector('.btn-next');
+  if (btn) btn.disabled = !userName.trim();
+}
+
+function toggleConsent() {
+  consentChecked = !consentChecked;
+  const cb = document.getElementById('consent-cb');
+  if (cb) cb.checked = consentChecked;
+  const pb = document.getElementById('pub-btn');
+  if (pb) pb.disabled = !consentChecked;
+}
+
+function publishProfile() {
+  if (!consentChecked) return;
+  renderPips();
+  document.getElementById('step-counter').textContent = 'Your profile';
+  document.getElementById('app').innerHTML = renderProfile();
+  window.scrollTo(0, 0);
+}
+
+function restart() {
+  currentStep = 0;
+  avatarEmoji = '🧠'; avatarPickerOpen = false;
+  userName = ''; userRole = ''; jdLoaded = false;
+  chargeLevel = 65; drainMode = false; consentChecked = false;
+  tileAnswers = {};
+  STEPS.forEach(s => { if (s.type === 'tiles') tileAnswers[s.id] = {}; });
+  chargeSelections = []; drainSelections = [];
+  todPeaks = []; todLows = [];
+  render();
+}
+
+/* ── Keyboard accessibility on tiles ────────────────────── */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    const t = e.target;
+    if (t.classList.contains('tile') || t.classList.contains('tod-cell') ||
+        t.classList.contains('stog') || t.classList.contains('jd-box')) {
+      e.preventDefault();
+      t.click();
+    }
+  }
+});
+
+/* ── Boot ───────────────────────────────────────────────── */
+render();
+</script>
+</body>
+</html>
