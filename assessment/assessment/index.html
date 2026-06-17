@@ -1,0 +1,2187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Work Explorer — Brain in Hand</title>
+<meta name="description" content="A tool to help you explore what's working at work, what's harder than it needs to be, and what might help.">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --plum:   #1B002E;
+  --purple: #8E3CCE;
+  --lilac:  #EAC1FF;
+  --pale:   #F5EAF9;
+  --amber:  #FFC962;
+  --yellow: #FFE95C;
+  --bg:     #FAF9F5;
+  --muted:  #6B5A7E;
+  --green:  #2E7D52;
+  --gbg:    #E8F5EE;
+  --gbd:    #A8D5BC;
+  --abg:    #FFF8E1;
+  --abd:    #FFE082;
+  --priv:   #4A6FA5;
+  --pbg:    #EEF3FB;
+  --pbd:    #B8CFEE;
+}
+body { font-family: system-ui,-apple-system,'Segoe UI',sans-serif; background:var(--bg); min-height:100vh; color:var(--plum); -webkit-font-smoothing:antialiased; }
+button,input,textarea { font-family:inherit; }
+.shell { max-width:480px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; background:var(--bg); }
+
+.hdr { background:var(--plum); padding:1.1rem 1.25rem .7rem; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+.logo { color:var(--yellow); font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; }
+.logo span { color:rgba(255,255,255,.4); font-weight:400; letter-spacing:0; text-transform:none; margin-left:5px; }
+.sc { font-size:11px; color:rgba(255,255,255,.35); }
+.pips { background:var(--plum); padding:0 1.25rem .9rem; display:flex; gap:4px; }
+.pip { height:3px; border-radius:2px; flex:1; background:rgba(255,255,255,.15); transition:background .3s; }
+.pip.done { background:var(--yellow); }
+.pip.active { background:var(--lilac); }
+
+.s-eyebrow { font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--purple); padding:1.25rem 1.25rem .3rem; }
+.s-head { font-size:20px; font-weight:500; color:var(--plum); padding:0 1.25rem .3rem; line-height:1.3; }
+.s-warm { font-size:13px; color:var(--purple); padding:0 1.25rem .25rem; line-height:1.5; font-style:italic; }
+.s-sub  { font-size:12px; color:var(--muted); padding:0 1.25rem .9rem; line-height:1.6; }
+
+.card { margin:0 1.25rem 1rem; background:#fff; border-radius:12px; border:.5px solid var(--lilac); padding:1rem 1.1rem; }
+.card p { font-size:12px; color:var(--muted); line-height:1.65; margin-bottom:.6rem; }
+.card p:last-child { margin-bottom:0; }
+.card strong { color:var(--plum); font-weight:500; }
+.card-warm { background:var(--pale); border-color:var(--lilac); }
+
+.note { margin:0 1.25rem .75rem; border-radius:8px; padding:9px 11px; font-size:11px; line-height:1.55; }
+.note-warm  { background:#FFF8EC; border:.5px solid var(--amber); color:#6B4200; }
+.note-green { background:var(--gbg); border:.5px solid var(--gbd); color:var(--green); }
+.note-priv  { background:var(--pbg); border:.5px solid var(--pbd); color:var(--priv); }
+.note-quiet { font-size:10px; color:#9B8AAA; padding:0 1.25rem .75rem; line-height:1.5; }
+
+.jd-box { margin:0 1.25rem .75rem; border:1.5px dashed var(--lilac); border-radius:10px; padding:.85rem; background:#fff; cursor:pointer; display:flex; align-items:center; gap:9px; transition:border-color .15s; }
+.jd-box:hover { border-color:var(--purple); }
+.jd-icon { width:34px; height:34px; border-radius:8px; background:var(--pale); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.jd-badge { font-size:10px; background:var(--amber); color:var(--plum); padding:2px 7px; border-radius:20px; font-weight:500; }
+
+/* Spectrum */
+.spectrum-wrap { margin:0 1.25rem 1rem; }
+.spectrum-track { position:relative; height:48px; background:linear-gradient(to right,var(--gbg),var(--abg),#FFF5F5); border-radius:24px; border:.5px solid var(--lilac); overflow:hidden; margin-bottom:.5rem; }
+input[type=range].spectrum { position:absolute; inset:0; width:100%; height:100%; appearance:none; background:transparent; cursor:pointer; padding:0 16px; }
+input[type=range].spectrum::-webkit-slider-thumb { appearance:none; width:32px; height:32px; border-radius:50%; background:var(--plum); border:3px solid #fff; box-shadow:0 2px 8px rgba(27,0,46,.25); cursor:pointer; }
+input[type=range].spectrum::-moz-range-thumb { width:32px; height:32px; border-radius:50%; background:var(--plum); border:3px solid #fff; cursor:pointer; }
+.spectrum-ends { display:flex; justify-content:space-between; }
+.spectrum-ends span { font-size:10px; color:var(--muted); }
+.spectrum-label { font-size:13px; font-weight:500; text-align:center; margin-bottom:4px; padding:0 1.25rem; }
+
+/* Group intro card */
+.group-intro { margin:0 1.25rem .75rem; border-radius:12px; overflow:hidden; border:.5px solid var(--lilac); }
+.group-intro-hdr { background:var(--plum); padding:.75rem 1rem; }
+.group-intro-title { font-size:13px; font-weight:500; color:var(--yellow); }
+.group-intro-sub { font-size:11px; color:rgba(255,255,255,.5); margin-top:2px; }
+.group-intro-body { background:#fff; padding:.75rem 1rem; font-size:12px; color:var(--muted); line-height:1.6; }
+
+/* Recognition tiles — full width, statement style */
+.recog-list { display:flex; flex-direction:column; gap:6px; padding:0 1.25rem .5rem; }
+.recog-tile { background:#fff; border:1.5px solid #EDE0F5; border-radius:10px; padding:10px 12px; cursor:pointer; transition:all .15s; -webkit-tap-highlight-color:transparent; }
+.recog-tile:hover { border-color:var(--lilac); background:var(--pale); }
+.recog-tile.yes { border-color:var(--purple); background:var(--pale); }
+.recog-tile.sometimes { border-color:var(--amber); background:var(--abg); }
+.recog-top { display:flex; align-items:center; gap:10px; }
+.recog-dot { width:20px; height:20px; border-radius:50%; border:1.5px solid #DDD3E8; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:all .15s; }
+.recog-tile.yes .recog-dot { background:var(--purple); border-color:var(--purple); }
+.recog-tile.sometimes .recog-dot { background:var(--amber); border-color:var(--amber); }
+.recog-dot-in { width:8px; height:8px; border-radius:50%; background:#fff; opacity:0; transition:opacity .15s; }
+.recog-tile.yes .recog-dot-in,
+.recog-tile.sometimes .recog-dot-in { opacity:1; }
+.recog-text { font-size:12px; color:var(--plum); line-height:1.45; flex:1; }
+.recog-lbl { font-size:9px; font-weight:600; flex-shrink:0; }
+.recog-tile.yes .recog-lbl { color:var(--purple); }
+.recog-tile.sometimes .recog-lbl { color:#7B5800; }
+
+/* Share toggle under tile */
+.share-row { display:flex; gap:5px; margin-top:8px; padding-top:8px; border-top:.5px solid var(--lilac); align-items:center; flex-wrap:wrap; }
+.share-row-lbl { font-size:10px; color:var(--muted); flex-shrink:0; }
+.stog { font-size:10px; padding:3px 9px; border-radius:20px; cursor:pointer; border:1px solid transparent; transition:all .12s; background:var(--pale); color:var(--muted); }
+.stog:hover { border-color:var(--lilac); }
+.stog.pub  { background:var(--purple); color:#fff; border-color:var(--purple); }
+.stog.priv { background:var(--pbg); color:var(--priv); border-color:var(--pbd); }
+
+.recog-legend { display:flex; gap:8px; padding:0 1.25rem .6rem; flex-wrap:wrap; }
+.rl { display:flex; align-items:center; gap:4px; font-size:10px; color:var(--muted); }
+.rl-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+/* Drill */
+.drill-prog { display:flex; align-items:center; gap:8px; padding:0 1.25rem .5rem; }
+.drill-pips { display:flex; gap:4px; }
+.dpip { width:6px; height:6px; border-radius:50%; background:#DDD3E8; }
+.dpip.done { background:var(--purple); }
+.dpip.active { background:var(--lilac); border:1.5px solid var(--purple); }
+.drill-prog-txt { font-size:11px; color:var(--muted); }
+
+.drill-card { margin:0 1.25rem .75rem; background:#fff; border-radius:12px; border:.5px solid var(--lilac); overflow:hidden; }
+.drill-ctx { background:var(--pale); padding:.75rem 1rem; font-size:12px; color:var(--muted); border-bottom:.5px solid var(--lilac); line-height:1.5; }
+.drill-ctx strong { color:var(--purple); font-weight:500; }
+.drill-q { font-size:14px; font-weight:500; color:var(--plum); padding:.9rem 1rem .5rem; line-height:1.4; }
+.drill-hint { font-size:11px; color:var(--muted); padding:0 1rem .7rem; font-style:italic; }
+.drill-opts { display:flex; flex-direction:column; }
+.drill-opt { display:flex; align-items:center; gap:10px; padding:.65rem 1rem; cursor:pointer; border-top:.5px solid var(--pale); transition:background .12s; -webkit-tap-highlight-color:transparent; }
+.drill-opt:hover { background:var(--pale); }
+.drill-opt.sel { background:var(--pale); }
+.dopt-dot { width:18px; height:18px; border-radius:4px; border:1.5px solid var(--lilac); flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:all .15s; }
+.drill-opt.sel .dopt-dot { background:var(--purple); border-color:var(--purple); }
+.dopt-in { width:8px; height:8px; border-radius:2px; background:#fff; opacity:0; transition:opacity .15s; }
+.drill-opt.sel .dopt-in { opacity:1; }
+.dopt-txt { font-size:12px; color:var(--plum); line-height:1.4; flex:1; }
+
+/* Free text */
+.free-text-wrap { margin:0 1.25rem .75rem; }
+.free-text-label { font-size:11px; color:var(--muted); margin-bottom:5px; }
+textarea.free-text { width:100%; border:1.5px solid var(--lilac); border-radius:10px; padding:.75rem; font-size:12px; color:var(--plum); background:#fff; resize:none; outline:none; line-height:1.55; transition:border-color .15s; }
+textarea.free-text:focus { border-color:var(--purple); }
+textarea.free-text::placeholder { color:#C0B0D0; }
+
+/* Tried */
+.tried-item { margin:0 1.25rem 8px; background:#fff; border:.5px solid var(--lilac); border-radius:10px; padding:.85rem 1rem; }
+.tried-text { font-size:12px; color:var(--plum); margin-bottom:.6rem; line-height:1.4; }
+.tried-ratings { display:flex; gap:6px; flex-wrap:wrap; }
+.trat { font-size:11px; padding:4px 10px; border-radius:20px; cursor:pointer; border:1.5px solid transparent; transition:all .15s; background:var(--pale); color:var(--muted); }
+.trat:hover { border-color:var(--lilac); }
+.trat.helped     { background:var(--gbg); border-color:var(--gbd); color:var(--green); }
+.trat.helped-bit { background:var(--abg); border-color:var(--abd); color:#7B5800; }
+.trat.didnt      { background:#FFF5F5; border-color:#FFCDD2; color:#8B2020; }
+.trat.not-tried  { background:var(--pale); border-color:var(--lilac); color:var(--muted); }
+.tried-section-hdr { padding:.5rem 1.25rem .25rem; font-size:10px; font-weight:600; color:var(--purple); letter-spacing:.08em; text-transform:uppercase; }
+.tried-context { padding:0 1.25rem .35rem; font-size:11px; color:var(--muted); font-style:italic; line-height:1.4; }
+
+/* Suggestions */
+.sug-grid { display:flex; flex-direction:column; gap:6px; padding:0 1.25rem .5rem; }
+.sug-item { background:#fff; border:1.5px solid #EDE0F5; border-radius:10px; padding:10px 12px; display:flex; align-items:flex-start; gap:10px; cursor:pointer; transition:all .15s; -webkit-tap-highlight-color:transparent; }
+.sug-item:hover { border-color:var(--lilac); }
+.sug-item.sel { border-color:var(--purple); background:var(--pale); }
+.sug-dot { width:18px; height:18px; border-radius:50%; border:1.5px solid #DDD3E8; flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center; transition:all .15s; }
+.sug-item.sel .sug-dot { background:var(--purple); border-color:var(--purple); }
+.sug-dot-in { width:8px; height:8px; border-radius:50%; background:#fff; opacity:0; transition:opacity .15s; }
+.sug-item.sel .sug-dot-in { opacity:1; }
+.sug-text { font-size:12px; color:var(--plum); line-height:1.4; flex:1; }
+
+/* Summary */
+.summary-card { margin:.75rem 1.25rem 0; background:#fff; border-radius:14px; border:.5px solid var(--lilac); overflow:hidden; }
+.sum-hdr { background:var(--plum); padding:1.25rem; }
+.sum-hdr-title { font-size:16px; font-weight:500; color:#fff; margin-bottom:2px; }
+.sum-hdr-sub   { font-size:11px; color:var(--lilac); }
+.sum-hdr-bih   { font-size:10px; color:var(--yellow); margin-top:6px; opacity:.75; }
+.sum-body { padding:1.1rem; display:flex; flex-direction:column; gap:1rem; }
+.sum-st { font-size:10px; font-weight:600; color:var(--purple); letter-spacing:.08em; text-transform:uppercase; margin-bottom:6px; }
+.sum-para { font-size:12px; color:var(--plum); line-height:1.7; background:var(--pale); border-radius:8px; padding:.75rem .9rem; border-left:3px solid var(--purple); }
+.sum-para.green-p { background:var(--gbg); border-left-color:var(--green); }
+.sum-para.amber-p { background:var(--abg); border-left-color:var(--amber); }
+.sum-para.priv-p  { background:var(--pbg); border-left-color:var(--priv); }
+.sum-item { font-size:12px; color:var(--plum); line-height:1.55; padding:.45rem .75rem .45rem .9rem; background:var(--pale); border-radius:7px; border-left:3px solid var(--purple); margin-bottom:3px; }
+.sum-item.green-i { background:var(--gbg); border-left-color:var(--green); }
+.sum-item.amber-i { background:var(--abg); border-left-color:var(--amber); }
+.sum-item.priv-i  { background:var(--pbg); border-left-color:var(--priv); }
+.sum-drill { margin-bottom:6px; padding:.65rem .9rem; background:var(--pale); border-radius:8px; border-left:3px solid var(--purple); }
+.sum-drill-text { font-size:12px; font-weight:500; color:var(--plum); line-height:1.4; }
+.sum-drill-l1 { font-size:11px; color:var(--purple); margin-top:3px; line-height:1.4; }
+.sum-drill-l2 { font-size:11px; color:var(--muted); margin-top:2px; line-height:1.4; }
+.sum-caveat { font-size:10px; color:var(--muted); line-height:1.55; background:var(--pale); border-radius:7px; padding:9px 11px; border:.5px solid var(--lilac); }
+
+/* Nav */
+.nav { display:flex; align-items:center; justify-content:space-between; padding:1rem 1.25rem 1.5rem; margin-top:auto; }
+.btn-back { font-size:12px; color:var(--muted); background:none; border:none; padding:0; cursor:pointer; }
+.btn-next { font-size:13px; font-weight:500; color:#fff; background:var(--purple); border:none; border-radius:8px; padding:10px 24px; transition:opacity .15s; cursor:pointer; }
+.btn-next:hover { opacity:.88; }
+.btn-next:disabled { opacity:.35; cursor:not-allowed; }
+.btn-action { margin:.85rem 1.25rem 0; width:calc(100% - 2.5rem); background:var(--plum); color:var(--yellow); font-size:13px; font-weight:500; border:none; border-radius:9px; padding:14px; display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer; transition:opacity .15s; }
+.btn-action:hover { opacity:.9; }
+.btn-restart { margin:.6rem 1.25rem 0; width:calc(100% - 2.5rem); background:transparent; color:var(--muted); font-size:12px; border:.5px solid var(--lilac); border-radius:9px; padding:10px; cursor:pointer; }
+.spacer { height:2.5rem; }
+
+.share-options { display:flex; flex-direction:column; gap:8px; margin:0 1.25rem; }
+.share-opt { background:#fff; border:1.5px solid var(--lilac); border-radius:10px; padding:.9rem 1rem; cursor:pointer; transition:all .15s; display:flex; align-items:flex-start; gap:10px; -webkit-tap-highlight-color:transparent; }
+.share-opt:hover { border-color:var(--purple); background:var(--pale); }
+.share-opt.sel { border-color:var(--purple); background:var(--pale); }
+.share-opt-icon { font-size:18px; flex-shrink:0; margin-top:1px; }
+.share-opt-title { font-size:13px; font-weight:500; color:var(--plum); margin-bottom:2px; }
+.share-opt-desc  { font-size:11px; color:var(--muted); line-height:1.45; }
+
+.pdf-loading { position:fixed; inset:0; background:rgba(27,0,46,.7); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:999; gap:12px; }
+.pdf-loading-text { font-size:14px; color:var(--lilac); }
+.pdf-spinner { width:32px; height:32px; border:3px solid rgba(255,255,255,.2); border-top-color:var(--yellow); border-radius:50%; animation:spin .8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+@media (prefers-reduced-motion:reduce) { *,*::before,*::after { transition:none !important; animation:none !important; } }
+
+/* TTS indicator */
+.tts-reading #tts-btn { color:var(--yellow) !important; }
+.tts-reading #tts-wave2 { opacity:1 !important; }
+@keyframes wave-pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+.tts-reading #tts-wave1 { animation:wave-pulse 1s ease-in-out infinite; }
+.tts-reading #tts-wave2 { animation:wave-pulse 1s ease-in-out infinite .3s; }
+
+.tts-bar {
+  background:rgba(142,60,206,.15);
+  border-bottom:.5px solid var(--lilac);
+  padding:6px 1.25rem;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:11px;
+  color:var(--purple);
+}
+.tts-bar.hidden { display:none; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="hdr">
+    <div class="logo">Brain in Hand <span>· Work Explorer</span></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button id="tts-btn" onclick="toggleTTS()" aria-label="Read this page aloud"
+        title="Read aloud" style="background:none;border:none;cursor:pointer;padding:4px;
+        border-radius:50%;display:flex;align-items:center;justify-content:center;
+        transition:background .15s;color:rgba(255,255,255,.5);"
+        onmouseover="this.style.background='rgba(255,255,255,.1)'"
+        onmouseout="this.style.background='none'">
+        <svg id="tts-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+          <path id="tts-wave1" d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+          <path id="tts-wave2" d="M19.07 4.93a10 10 0 0 1 0 14.14" opacity="0"/>
+        </svg>
+      </button>
+      <div class="sc" id="sc" aria-live="polite"></div>
+    </div>
+  </header>
+  <div class="pips" id="pips" role="progressbar"></div>
+  <div class="tts-bar hidden" id="tts-bar">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+    </svg>
+    <span id="tts-bar-text">Reading aloud...</span>
+    <button onclick="stopTTS()" style="margin-left:auto;background:none;border:none;
+      cursor:pointer;font-size:11px;color:var(--purple);text-decoration:underline;padding:0">
+      Stop
+    </button>
+  </div>
+  <main id="app" role="main"></main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+/* ── Data ───────────────────────────────────────────────────────────
+   group: 'me' = personal experience | 'env' = working environment
+   drillL1: multi-select
+   drillL2: keyed by L1 option id, multi-select
+   tried: positive strategies only — no harmful coping
+   suggestions: conversation starters
+──────────────────────────────────────────────────────────────────── */
+const ITEMS = [
+
+  /* ── How things feel for me ── */
+  {
+    id:'harder', group:'me',
+    text:'There are parts of my role I find consistently harder than others',
+    drillL1:{ q:'What kinds of things tend to be harder?', hint:'Select everything that feels true — you can pick more than one.', opts:[
+      {id:'tasks',    text:'Certain types of task — some feel much harder than others'},
+      {id:'people',   text:'Certain interactions or situations involving other people'},
+      {id:'starting', text:'Getting started — initiating things is harder than doing them'},
+      {id:'finishing',text:'Finishing things off and closing them out'},
+      {id:'unclear',  text:'Things that aren\'t clearly defined — I need more structure than I\'m given'},
+      {id:'explain',  text:'It\'s hard to explain — I just notice some things cost me more than they seem to cost others'},
+    ]},
+    drillL2:{
+      tasks:    {q:'What makes those tasks harder?', opts:[
+        {id:'a', text:'They involve a type of thinking or skill I find difficult'},
+        {id:'b', text:'They\'re not clearly defined and I\'m not sure what\'s needed'},
+        {id:'c', text:'They take much longer for me than they seem to for others'},
+        {id:'d', text:'The stakes feel high and I worry about getting them wrong'},
+      ]},
+      people:   {q:'What makes those situations harder?', opts:[
+        {id:'a', text:'I find it hard to read what\'s expected of me in the moment'},
+        {id:'b', text:'Tension or conflict is hard for me to navigate'},
+        {id:'c', text:'Certain settings — particularly groups — take a lot out of me'},
+        {id:'d', text:'I find it hard to say what I need to say when it matters'},
+      ]},
+      starting: {q:'What tends to get in the way of starting?', opts:[
+        {id:'a', text:'I need to understand the full picture before I can begin'},
+        {id:'b', text:'The task feels too big and I don\'t know how to break into it'},
+        {id:'c', text:'I\'m not sure I\'m heading in the right direction'},
+        {id:'d', text:'There\'s too much else pulling at my attention'},
+      ]},
+      finishing:{q:'What makes it hard to close things off?', opts:[
+        {id:'a', text:'Something always seems to arrive before I can finish'},
+        {id:'b', text:'I\'m not sure when something is good enough to stop'},
+        {id:'c', text:'I lose momentum and find it hard to pick back up'},
+        {id:'d', text:'I move on before finishing and then find it hard to return'},
+      ]},
+      unclear:  {q:'What kind of clarity would help?', opts:[
+        {id:'a', text:'A clear brief — what\'s expected and what good looks like'},
+        {id:'b', text:'Examples I can refer to'},
+        {id:'c', text:'Regular feedback so I know if I\'m heading in the right direction'},
+        {id:'d', text:'Someone to sense-check with without it being a formal thing'},
+      ]},
+      explain:  {q:'When do you notice it most?', opts:[
+        {id:'a', text:'In certain meetings or conversations'},
+        {id:'b', text:'With specific types of task'},
+        {id:'c', text:'At certain times of day or week'},
+        {id:'d', text:'When I\'m tired or under more pressure than usual'},
+      ]},
+    },
+    tried:[
+      {id:'t1', text:'Breaking things into smaller steps'},
+      {id:'t2', text:'Asking a colleague for a steer or some help'},
+      {id:'t3', text:'Giving myself more time than I think I\'ll need'},
+      {id:'t4', text:'Talking to my manager about it'},
+      {id:'t5', text:'Finding a different approach that suits me better'},
+    ],
+    suggestions:[
+      {text:'A chance to talk through what I find harder and explore whether there are different approaches'},
+      {text:'Tasks or briefs broken into clearer steps so I always know where to begin'},
+      {text:'Regular short check-ins so I can flag early if something is harder than expected'},
+      {text:'Space to ask questions without it feeling like I\'m admitting I can\'t do the job'},
+    ],
+  },
+
+  {
+    id:'help', group:'me',
+    text:'I find it hard to ask for help even when I know I need it',
+    drillL1:{ q:'What tends to get in the way?', hint:'Pick as many as feel true.', opts:[
+      {id:'capable', text:'I worry it might make me look less capable'},
+      {id:'burden',  text:'I don\'t want to add to someone else\'s load'},
+      {id:'receive', text:'I\'m not sure it would be well received'},
+      {id:'words',   text:'I find it hard to explain what I actually need'},
+      {id:'timing',  text:'I don\'t always realise I need help until I\'m already in it'},
+    ]},
+    drillL2:{
+      capable:{q:'What would make it feel safer to ask?', opts:[
+        {id:'a', text:'Knowing it\'s seen as a strength rather than a weakness here'},
+        {id:'b', text:'A culture where people openly support each other'},
+        {id:'c', text:'A specific person I know I can go to'},
+        {id:'d', text:'Having asked before and it having gone well'},
+      ]},
+      burden: {q:'What makes you feel that way?', opts:[
+        {id:'a', text:'I can see how stretched everyone is'},
+        {id:'b', text:'I feel like I should be managing on my own'},
+        {id:'c', text:'I\'ve felt brushed off when I\'ve raised things before'},
+        {id:'d', text:'My difficulty feels too small to be worth mentioning'},
+      ]},
+      receive:{q:'What makes you uncertain about asking?', opts:[
+        {id:'a', text:'Past experience hasn\'t always gone well'},
+        {id:'b', text:'The person seems too busy or disengaged'},
+        {id:'c', text:'I don\'t feel close enough to them to be comfortable'},
+        {id:'d', text:'I\'m not sure they\'d understand what I\'m finding hard'},
+      ]},
+      words:  {q:'What makes it hard to explain?', opts:[
+        {id:'a', text:'I don\'t always know myself what would help'},
+        {id:'b', text:'I worry about sounding demanding'},
+        {id:'c', text:'I find it hard to talk about myself in this way'},
+        {id:'d', text:'By the time I\'ve found the words the moment has passed'},
+      ]},
+      timing: {q:'What happens when you realise?', opts:[
+        {id:'a', text:'I try to carry on and it gets harder'},
+        {id:'b', text:'I go quiet and become less effective'},
+        {id:'c', text:'I eventually say something but much later than I should have'},
+        {id:'d', text:'I find a workaround rather than asking directly'},
+      ]},
+    },
+    tried:[
+      {id:'t1', text:'Asking a colleague rather than my manager'},
+      {id:'t2', text:'Writing down what I need before I ask'},
+      {id:'t3', text:'Waiting for a regular meeting to raise it'},
+      {id:'t4', text:'Finding a workaround on my own'},
+      {id:'t5', text:'Asking by message rather than in person'},
+    ],
+    suggestions:[
+      {text:'A regular check-in where asking for support is built in — so I don\'t have to create the moment myself'},
+      {text:'A named person I can go to when things are hard — not just my manager'},
+      {text:'A low-key way to flag I could do with some help without it having to be a whole conversation'},
+      {text:'Knowing that asking for support is genuinely welcome here'},
+    ],
+  },
+
+  {
+    id:'presenting', group:'me',
+    text:'I find it difficult to show how things really are for me at work',
+    drillL1:{ q:'What makes it hard to be honest about how you\'re doing?', hint:'Select everything that feels relevant.', opts:[
+      {id:'safe',   text:'It doesn\'t feel safe to be honest about it'},
+      {id:'judged', text:'I\'m worried about how it would be perceived'},
+      {id:'career', text:'I\'m concerned about what it might mean for my role'},
+      {id:'habit',  text:'I\'ve always kept things to myself — it\'s become automatic'},
+      {id:'words',  text:'I find it genuinely hard to put into words how I\'m doing'},
+    ]},
+    drillL2:{
+      safe:   {q:'What would make it feel safer?', opts:[
+        {id:'a', text:'Knowing it would be received with care and not used against me'},
+        {id:'b', text:'Seeing others be honest without negative consequences'},
+        {id:'c', text:'A way to say how things are that feels lower stakes'},
+        {id:'d', text:'A relationship where I feel known well enough not to have to explain from scratch'},
+      ]},
+      judged: {q:'What are you most worried people would think?', opts:[
+        {id:'a', text:'That I\'m not capable of doing my job'},
+        {id:'b', text:'That I\'m asking for too much'},
+        {id:'c', text:'That it will become bigger than I want it to'},
+        {id:'d', text:'That it will change how people treat me'},
+      ]},
+      career: {q:'What specifically concerns you?', opts:[
+        {id:'a', text:'That it could affect how I\'m seen for opportunities or progression'},
+        {id:'b', text:'That it might start a process I don\'t want'},
+        {id:'c', text:'That it will be recorded somewhere it shouldn\'t be'},
+        {id:'d', text:'That my manager will treat me differently'},
+      ]},
+      habit:  {q:'When did it become this way?', opts:[
+        {id:'a', text:'Long before this job — it\'s always been like this for me'},
+        {id:'b', text:'After something happened that made me pull back'},
+        {id:'c', text:'Gradually, without me noticing until it was just how things were'},
+        {id:'d', text:'I\'m not sure I\'ve ever done it differently'},
+      ]},
+      words:  {q:'What makes it hard to find the words?', opts:[
+        {id:'a', text:'I\'m not always sure myself how I\'m doing until I stop and think'},
+        {id:'b', text:'Things feel complicated and I can\'t simplify them enough'},
+        {id:'c', text:'I don\'t want to say it wrong and be misunderstood'},
+        {id:'d', text:'I find this kind of conversation genuinely difficult'},
+      ]},
+    },
+    tried:[
+      {id:'t1', text:'Telling one person I trust how things really are'},
+      {id:'t2', text:'Taking time away when things have become too much'},
+      {id:'t3', text:'Talking to someone outside of work'},
+      {id:'t4', text:'Waiting until things were bad enough that I had to say something'},
+      {id:'t5', text:'Writing things down for myself, even if not sharing them'},
+    ],
+    suggestions:[
+      {text:'A regular check-in that genuinely feels safe — not a performance review, just an honest conversation'},
+      {text:'A named person I know I can go to privately when things are hard'},
+      {text:'Knowing that being honest about how I\'m doing won\'t have negative consequences'},
+      {text:'A low-key way to indicate I\'m not okay, without it having to become a formal thing'},
+    ],
+  },
+
+  {
+    id:'switchoff', group:'me',
+    text:'I find it difficult to switch off from work outside of working hours',
+    drillL1:{ q:'What tends to stay with you?', hint:'Pick as many as feel right.', opts:[
+      {id:'tasks',   text:'Unfinished tasks or things I haven\'t got to yet'},
+      {id:'convs',   text:'Conversations or situations I keep going over'},
+      {id:'worry',   text:'A general sense of worry that doesn\'t have a specific cause'},
+      {id:'upcoming',text:'Thinking about what\'s coming up and whether I\'m ready for it'},
+      {id:'energy',  text:'I\'m so depleted by the end of the day I can\'t properly recover'},
+    ]},
+    drillL2:{
+      tasks:   {q:'What makes those tasks hard to leave behind?', opts:[
+        {id:'a', text:'I feel responsible and find it hard to let go of unfinished things'},
+        {id:'b', text:'My workload means there\'s always something left undone'},
+        {id:'c', text:'Once something is in my head I find it hard to put it down'},
+        {id:'d', text:'I\'m worried about what happens if I don\'t stay on top of it'},
+      ]},
+      convs:   {q:'What kind of thing do you tend to replay?', opts:[
+        {id:'a', text:'Something I said or didn\'t say'},
+        {id:'b', text:'Something said to me that I\'m still trying to make sense of'},
+        {id:'c', text:'A situation that felt unresolved when it ended'},
+        {id:'d', text:'An interaction that left me uncertain about where I stand'},
+      ]},
+      worry:   {q:'When is it worst?', opts:[
+        {id:'a', text:'In the evenings when I\'m trying to wind down'},
+        {id:'b', text:'At night when I\'m trying to sleep'},
+        {id:'c', text:'At the weekend when I have more space to think'},
+        {id:'d', text:'It doesn\'t have a pattern — it comes and goes'},
+      ]},
+      upcoming:{q:'What tends to worry you about what\'s ahead?', opts:[
+        {id:'a', text:'Specific situations or conversations I\'m anticipating'},
+        {id:'b', text:'Not feeling on top of things when the week starts'},
+        {id:'c', text:'Uncertainty — not knowing what\'s coming'},
+        {id:'d', text:'Whether I\'ll have enough in me for what\'s ahead'},
+      ]},
+      energy:  {q:'What depletes you most during the day?', opts:[
+        {id:'a', text:'A lot of interaction — meetings, being on, performing'},
+        {id:'b', text:'Situations I find emotionally or socially demanding'},
+        {id:'c', text:'The environment — noise, commuting, sensory demands'},
+        {id:'d', text:'Uncertainty and things I can\'t plan for'},
+      ]},
+    },
+    tried:[
+      {id:'t1', text:'Finishing at a set time and sticking to it'},
+      {id:'t2', text:'Writing things down so I can stop holding them in my head'},
+      {id:'t3', text:'Exercise or movement to help me decompress'},
+      {id:'t4', text:'Talking to someone about how I\'m feeling'},
+      {id:'t5', text:'Creating a clear end-of-day ritual'},
+    ],
+    suggestions:[
+      {text:'A way to close out the week with a clear sense of what\'s done and what can wait — so I\'m not carrying it into my time off'},
+      {text:'Protected time at the end of the day to wind down properly rather than stopping abruptly'},
+      {text:'Clearer boundaries around when I\'m expected to be available and when I\'m not'},
+      {text:'A workload conversation if that\'s part of what\'s making it hard to switch off'},
+    ],
+  },
+
+  {
+    id:'avoid', group:'me',
+    text:'There are situations at work I find myself wanting to avoid',
+    drillL1:{ q:'What kind of situation tends to be hard to face?', hint:'You can select more than one.', opts:[
+      {id:'meetings', text:'Certain meetings or group settings'},
+      {id:'people',   text:'Interactions involving certain people'},
+      {id:'tasks',    text:'Specific tasks or types of work'},
+      {id:'feedback', text:'Situations where I might receive feedback or be evaluated'},
+      {id:'conflict', text:'Situations with any tension or disagreement'},
+    ]},
+    drillL2:{
+      meetings:{q:'What is it about those meetings?', opts:[
+        {id:'a', text:'I find it hard to contribute without more time to prepare'},
+        {id:'b', text:'There\'s too much happening at once to follow properly'},
+        {id:'c', text:'I find it hard to know when to speak or how to get a word in'},
+        {id:'d', text:'I feel observed or judged on what I say'},
+      ]},
+      people:  {q:'What makes those interactions harder?', opts:[
+        {id:'a', text:'The dynamic is unpredictable or hard to read'},
+        {id:'b', text:'Something has happened that makes me more cautious'},
+        {id:'c', text:'I\'m not sure what\'s expected of me around them'},
+        {id:'d', text:'The interaction takes a lot out of me even when it goes fine'},
+      ]},
+      tasks:   {q:'What makes those tasks hard to face?', opts:[
+        {id:'a', text:'I\'m not confident I can do them well enough'},
+        {id:'b', text:'They involve things I genuinely find harder than they appear'},
+        {id:'c', text:'I\'ve struggled with them before and it\'s stayed with me'},
+        {id:'d', text:'I\'m not sure how to approach them or where to begin'},
+      ]},
+      feedback:{q:'What is it about being evaluated that\'s hard?', opts:[
+        {id:'a', text:'I find critical feedback hard to receive even when it\'s fair'},
+        {id:'b', text:'I\'m not always sure how I\'m doing and that creates anxiety'},
+        {id:'c', text:'The way feedback tends to be given doesn\'t work well for me'},
+        {id:'d', text:'I hold myself to a high standard and find falling short very hard'},
+      ]},
+      conflict:{q:'What happens for you when there\'s tension?', opts:[
+        {id:'a', text:'I find it hard to think clearly in the moment'},
+        {id:'b', text:'I tend to go quiet or step back'},
+        {id:'c', text:'I carry it with me long after it\'s over'},
+        {id:'d', text:'I say something I regret or freeze and say nothing at all'},
+      ]},
+    },
+    tried:[
+      {id:'t1', text:'Preparing more carefully beforehand'},
+      {id:'t2', text:'Asking someone to come with me or support me'},
+      {id:'t3', text:'Taking a different approach that feels more manageable'},
+      {id:'t4', text:'Talking to my manager about it'},
+      {id:'t5', text:'Taking time afterwards to decompress'},
+    ],
+    suggestions:[
+      {text:'Advance information so I\'m not going into situations cold'},
+      {text:'A way to flag when something is particularly hard before it happens rather than after'},
+      {text:'Support to think through how to approach situations I find difficult'},
+      {text:'A different format for some situations where the usual way doesn\'t work well for me'},
+    ],
+  },
+
+  {
+    id:'energy', group:'me',
+    text:'My energy levels at work vary more than people might realise',
+    drillL1:{ q:'What tends to affect your energy most?', hint:'Pick everything that feels relevant.', opts:[
+      {id:'social',  text:'Interactions and social demands cost me more than might be obvious'},
+      {id:'tasks',   text:'Certain tasks take far more out of me than others might expect'},
+      {id:'environ', text:'The environment — noise, sensory demands, certain spaces'},
+      {id:'unpred',  text:'Unpredictability — not knowing what\'s coming depletes me'},
+      {id:'varies',  text:'It varies and I can\'t always predict it or explain why'},
+    ]},
+    drillL2:{
+      social:  {q:'What helps you manage that?', opts:[
+        {id:'a', text:'Recovery time between interactions — even a few minutes helps'},
+        {id:'b', text:'Knowing what interactions are coming so I can prepare'},
+        {id:'c', text:'Fewer back-to-back demands on the same day'},
+        {id:'d', text:'Being able to work more quietly on lower-energy days'},
+      ]},
+      tasks:   {q:'Which kinds of tasks cost you most?', opts:[
+        {id:'a', text:'Anything with a lot of social or emotional demand'},
+        {id:'b', text:'Tasks requiring sustained focus over a long period'},
+        {id:'c', text:'Ambiguous tasks where I have to figure out what\'s needed'},
+        {id:'d', text:'Things I find hard but feel I should find easy'},
+      ]},
+      environ: {q:'What about the environment affects you most?', opts:[
+        {id:'a', text:'Noise or unpredictable sound'},
+        {id:'b', text:'Open spaces with a lot happening around me'},
+        {id:'c', text:'Commuting or travelling to a location'},
+        {id:'d', text:'A space that\'s not set up for how I work best'},
+      ]},
+      unpred:  {q:'What kind of unpredictability costs you most?', opts:[
+        {id:'a', text:'Last-minute changes to my plans or schedule'},
+        {id:'b', text:'Not knowing what the day holds when I start it'},
+        {id:'c', text:'Being asked for things without any notice'},
+        {id:'d', text:'Changes to who I\'m working with or how things are done'},
+      ]},
+      varies:  {q:'When does it tend to be most noticeable?', opts:[
+        {id:'a', text:'Certain times of day — I have clear peaks and troughs'},
+        {id:'b', text:'Certain days of the week'},
+        {id:'c', text:'After periods of sustained demand'},
+        {id:'d', text:'I genuinely can\'t predict it — it just varies'},
+      ]},
+    },
+    tried:[
+      {id:'t1', text:'Building rest breaks into my day'},
+      {id:'t2', text:'Working from home when I need to recover'},
+      {id:'t3', text:'Protecting certain times of day for focused work'},
+      {id:'t4', text:'Adjusting my schedule when I have some flexibility'},
+      {id:'t5', text:'Being more open with my manager about where I am'},
+    ],
+    suggestions:[
+      {text:'Some flexibility about how and where I work on days when my energy is lower'},
+      {text:'Protected quiet time — not necessarily more time, just space to do focused work'},
+      {text:'An understanding that my output may look different on different days — but the work gets done'},
+      {text:'A conversation about what a working pattern that suits me looks like'},
+    ],
+  },
+
+  {
+    id:'perceived', group:'me',
+    text:'I worry about how I\'m coming across or being perceived at work',
+    drillL1:{ q:'What tends to worry you most?', hint:'Select all that apply.', opts:[
+      {id:'capable', text:'Whether people think I\'m capable of doing my job'},
+      {id:'fitting', text:'Whether I come across the way I intend to'},
+      {id:'aftermth',text:'Whether interactions went the way I think they did'},
+      {id:'feedback',text:'Whether the feedback I\'m getting is the full picture'},
+      {id:'general', text:'A general sense of it that\'s hard to pin to anything specific'},
+    ]},
+    drillL2:{
+      capable: {q:'What tends to bring that worry on?', opts:[
+        {id:'a', text:'When I find something harder than it seems to be for others'},
+        {id:'b', text:'When I get feedback — even neutral feedback makes me anxious'},
+        {id:'c', text:'When something goes wrong or I make a mistake'},
+        {id:'d', text:'It\'s fairly constant — I don\'t need a specific trigger'},
+      ]},
+      fitting: {q:'What feels hard about coming across the way you intend?', opts:[
+        {id:'a', text:'I\'m not always sure what\'s expected socially'},
+        {id:'b', text:'I communicate or interact differently and I\'m aware of it'},
+        {id:'c', text:'Some social norms are hard for me to read or follow naturally'},
+        {id:'d', text:'I work hard to seem like everyone else and it takes energy'},
+      ]},
+      aftermth:{q:'What makes you uncertain after interactions?', opts:[
+        {id:'a', text:'I\'m not sure if I said the right thing'},
+        {id:'b', text:'I can\'t always read whether it went well'},
+        {id:'c', text:'I notice things I\'d do differently when I replay it'},
+        {id:'d', text:'I\'m uncertain about what the other person took from it'},
+      ]},
+      feedback:{q:'What makes you uncertain about feedback?', opts:[
+        {id:'a', text:'It\'s infrequent enough that I\'m guessing in between'},
+        {id:'b', text:'It\'s delivered in a way that\'s hard for me to read'},
+        {id:'c', text:'I\'m not sure if what I\'m being told is the whole picture'},
+        {id:'d', text:'Positive feedback doesn\'t reassure me the way it might for others'},
+      ]},
+      general: {q:'When does it tend to be worse?', opts:[
+        {id:'a', text:'In group settings where more people are involved'},
+        {id:'b', text:'Around certain people who are harder to read'},
+        {id:'c', text:'During periods of change or uncertainty'},
+        {id:'d', text:'When I\'m under more pressure than usual'},
+      ]},
+    },
+    tried:[
+      {id:'t1', text:'Asking for feedback to try to get some clarity'},
+      {id:'t2', text:'Talking to someone I trust about it'},
+      {id:'t3', text:'Reminding myself of evidence that things are okay'},
+      {id:'t4', text:'Trying different approaches to see what works better'},
+      {id:'t5', text:'Just carrying it — I haven\'t found a way to resolve it yet'},
+    ],
+    suggestions:[
+      {text:'More regular, specific feedback so I\'m not left guessing'},
+      {text:'Direct reassurance when things are going well — I don\'t always pick it up from context'},
+      {text:'A manager who understands I might need things to be more explicit'},
+      {text:'A working relationship where I feel known well enough that this worry has less grip'},
+    ],
+  },
+
+  /* ── How things feel in my working environment ── */
+  {
+    id:'change', group:'env',
+    text:'Changes at work are hard for me to absorb, especially without much notice',
+    drillL1:{ q:'What makes change particularly hard to absorb?', hint:'Pick as many as feel true.', opts:[
+      {id:'notice',   text:'The lack of notice — I need time to prepare and adjust'},
+      {id:'why',      text:'Not understanding the reason behind the change'},
+      {id:'control',  text:'Not having any say in it'},
+      {id:'starting', text:'Having to start again when I\'d finally found my feet'},
+      {id:'more',     text:'Not knowing what else might change — the uncertainty about what\'s coming'},
+    ]},
+    drillL2:{
+      notice:  {q:'What would adequate notice look like for you?', opts:[
+        {id:'a', text:'Enough time to process before I\'m expected to act on it'},
+        {id:'b', text:'Being told at the same time as others — not after'},
+        {id:'c', text:'A heads-up before any formal announcement'},
+        {id:'d', text:'Time to ask questions before the change takes effect'},
+      ]},
+      why:     {q:'What would help you make sense of it?', opts:[
+        {id:'a', text:'A clear explanation of the reason'},
+        {id:'b', text:'Space to ask questions without feeling difficult'},
+        {id:'c', text:'Knowing it\'s been properly thought through'},
+        {id:'d', text:'Understanding what it means for my role specifically'},
+      ]},
+      control: {q:'What kind of involvement would help?', opts:[
+        {id:'a', text:'Some input before decisions are made'},
+        {id:'b', text:'Being consulted even if the outcome is already decided'},
+        {id:'c', text:'Control over how I implement it, even if not over what changes'},
+        {id:'d', text:'Honest, direct communication rather than being managed through it'},
+      ]},
+      starting:{q:'What\'s hardest about starting again?', opts:[
+        {id:'a', text:'Routines and ways of working that helped me are gone'},
+        {id:'b', text:'I have to rebuild understanding I worked hard to develop'},
+        {id:'c', text:'It takes me longer to adjust than others seem to need'},
+        {id:'d', text:'I\'m back to uncertainty at a point when I\'d settled'},
+      ]},
+      more:    {q:'What kind of uncertainty bothers you most?', opts:[
+        {id:'a', text:'What my role will look like going forward'},
+        {id:'b', text:'Whether I\'ll be able to adapt'},
+        {id:'c', text:'Whether this signals something bigger to come'},
+        {id:'d', text:'Not knowing what the next change will be'},
+      ]},
+    },
+    tried:[
+      {id:'t1', text:'Finding out as much as I can to reduce uncertainty'},
+      {id:'t2', text:'Talking it through with a colleague or someone I trust'},
+      {id:'t3', text:'Focusing on the parts of my work that haven\'t changed'},
+      {id:'t4', text:'Giving myself time to adjust before reacting'},
+      {id:'t5', text:'Raising my concerns with my manager'},
+    ],
+    suggestions:[
+      {text:'As much advance notice as possible — and being told at the same time as everyone else'},
+      {text:'A clear explanation of why things are changing and what it means for my role'},
+      {text:'Time to ask questions before I\'m expected to have adapted'},
+      {text:'Acknowledgement that adjusting takes time — and that\'s a reasonable thing to need'},
+    ],
+  },
+
+  {
+    id:'expectations', group:'env',
+    text:'It isn\'t always clear what\'s expected of me or what good looks like',
+    drillL1:{ q:'What feels unclear?', hint:'Select everything that feels true.', opts:[
+      {id:'daily',    text:'What I should be focusing on day to day'},
+      {id:'standard', text:'What good looks like — am I meeting what\'s needed?'},
+      {id:'boundary', text:'Where my role ends and someone else\'s begins'},
+      {id:'shifted',  text:'Things have changed but expectations haven\'t been reset'},
+      {id:'mixed',    text:'Different people seem to expect different things from me'},
+    ]},
+    drillL2:{
+      daily:    {q:'What makes it hard to know what to focus on?', opts:[
+        {id:'a', text:'Priorities aren\'t communicated clearly or regularly'},
+        {id:'b', text:'They change too often to keep up with'},
+        {id:'c', text:'I\'m pulled in different directions by different people'},
+        {id:'d', text:'I\'m expected to work it out myself but I need more guidance than that'},
+      ]},
+      standard: {q:'What would help you know where you stand?', opts:[
+        {id:'a', text:'More regular feedback — not just at formal reviews'},
+        {id:'b', text:'A clear description of what the role requires at my level'},
+        {id:'c', text:'Examples of what good looks like in practice'},
+        {id:'d', text:'Being told directly rather than having to read between the lines'},
+      ]},
+      boundary: {q:'What causes the confusion?', opts:[
+        {id:'a', text:'Things fall through gaps between me and colleagues'},
+        {id:'b', text:'I end up picking things up that aren\'t really mine'},
+        {id:'c', text:'I\'m not sure when to escalate and when to just handle something'},
+        {id:'d', text:'The team structure has changed and it hasn\'t been clarified'},
+      ]},
+      shifted:  {q:'What changed?', opts:[
+        {id:'a', text:'I have a new manager with different expectations'},
+        {id:'b', text:'My role has evolved but it\'s never been formally discussed'},
+        {id:'c', text:'The team or organisation has restructured'},
+        {id:'d', text:'What I was recruited to do and what I do day-to-day have drifted apart'},
+      ]},
+      mixed:    {q:'What creates the conflict?', opts:[
+        {id:'a', text:'My manager and other senior people want different things'},
+        {id:'b', text:'Different teams see my role differently'},
+        {id:'c', text:'What\'s in my job description and what I\'m asked to do don\'t match'},
+        {id:'d', text:'What I\'m measured on and what I actually spend time on are different things'},
+      ]},
+    },
+    tried:[
+      {id:'t1', text:'Asking my manager for clarity directly'},
+      {id:'t2', text:'Working it out from what I observe around me'},
+      {id:'t3', text:'Looking back at my job description'},
+      {id:'t4', text:'Talking to a colleague who seems clearer on it'},
+      {id:'t5', text:'Getting on with it and hoping for the best'},
+    ],
+    suggestions:[
+      {text:'A conversation to reset what\'s expected — what does my role actually look like right now?'},
+      {text:'Written clarity on priorities when they change — stated, not assumed'},
+      {text:'Regular short check-ins so uncertainty can be raised early rather than carried'},
+      {text:'A chance to revisit my job description to make sure it reflects reality'},
+    ],
+  },
+
+  {
+    id:'workload', group:'env',
+    text:'The amount of work I have feels hard to manage at the moment',
+    drillL1:{ q:'What makes it feel hard to manage?', hint:'Pick as many as feel true.', opts:[
+      {id:'volume',  text:'There is simply too much — the volume is too high'},
+      {id:'unpred',  text:'It\'s unpredictable — things arrive without warning'},
+      {id:'unclear', text:'It\'s not clear what matters most so everything feels urgent'},
+      {id:'cost',    text:'Some tasks take far more out of me than might be visible'},
+      {id:'shifting',text:'It keeps changing — I never feel like I\'ve got on top of it'},
+    ]},
+    drillL2:{
+      volume:  {q:'What\'s contributing most to the volume?', opts:[
+        {id:'a', text:'My role has grown without the workload being looked at'},
+        {id:'b', text:'I cover for others or take on things beyond my role'},
+        {id:'c', text:'Meetings take so much time I can\'t do the actual work'},
+        {id:'d', text:'Some tasks take me longer than they might for others'},
+      ]},
+      unpred:  {q:'What tends to arrive without warning?', opts:[
+        {id:'a', text:'Requests that land without considering what I\'m already doing'},
+        {id:'b', text:'Things from other teams or parts of the organisation'},
+        {id:'c', text:'Things that were supposed to be someone else\'s'},
+        {id:'d', text:'Urgent or crisis things that disrupt what I\'d planned'},
+      ]},
+      unclear: {q:'What makes prioritising hard?', opts:[
+        {id:'a', text:'Everything is presented as urgent and I can\'t work out what actually is'},
+        {id:'b', text:'I don\'t always have enough context to judge'},
+        {id:'c', text:'I find it hard to push back even when I\'m already at capacity'},
+        {id:'d', text:'There\'s no clear system and I\'m making it up as I go'},
+      ]},
+      cost:    {q:'Which kinds of tasks cost you most?', opts:[
+        {id:'a', text:'Anything with a lot of social or emotional demand'},
+        {id:'b', text:'Tasks needing sustained concentration over a long period'},
+        {id:'c', text:'Ambiguous tasks without a clear right answer'},
+        {id:'d', text:'Tasks I find hard but feel I should find manageable'},
+      ]},
+      shifting:{q:'What changes most often?', opts:[
+        {id:'a', text:'Priorities — what matters most shifts constantly'},
+        {id:'b', text:'Deadlines — things get moved or brought forward without notice'},
+        {id:'c', text:'Who\'s responsible for what'},
+        {id:'d', text:'How things are done — processes, systems, ways of working'},
+      ]},
+    },
+    tried:[
+      {id:'t1', text:'Raising it in a one-to-one with my manager'},
+      {id:'t2', text:'Asking colleagues for help'},
+      {id:'t3', text:'Being more selective about what I take on'},
+      {id:'t4', text:'Reorganising how I work to find more time'},
+      {id:'t5', text:'Setting clearer boundaries on my availability'},
+    ],
+    suggestions:[
+      {text:'A regular workload review — not to justify what I do but to make it sustainable'},
+      {text:'A way to flag when something new arrives that I genuinely don\'t have capacity for'},
+      {text:'Clearer priorities — what can wait and what really can\'t'},
+      {text:'Recognition that some tasks take more from me than they might from someone else'},
+    ],
+  },
+
+  {
+    id:'feedback', group:'env',
+    text:'Some of the feedback I receive is hard for me to act on',
+    drillL1:{ q:'What makes it hard to act on?', hint:'Select everything that feels true.', opts:[
+      {id:'vague',  text:'It\'s not specific enough for me to know what to change'},
+      {id:'late',   text:'It comes too late — the moment has passed'},
+      {id:'how',    text:'The way it\'s delivered is hard for me to process'},
+      {id:'scarce', text:'There\'s not enough of it — I\'m mostly guessing'},
+      {id:'balance',text:'What\'s going well is rarely mentioned alongside what isn\'t'},
+    ]},
+    drillL2:{
+      vague:  {q:'What would make it more useful?', opts:[
+        {id:'a', text:'Specific examples rather than general observations'},
+        {id:'b', text:'A clear sense of what to do differently'},
+        {id:'c', text:'A sense of how significant the issue is — I can\'t always read that'},
+        {id:'d', text:'Follow-up so I know if things have improved'},
+      ]},
+      late:   {q:'When would timing work better for you?', opts:[
+        {id:'a', text:'As close to the situation as possible, while it\'s still fresh'},
+        {id:'b', text:'After I\'ve had a little time to reflect, but not too long after'},
+        {id:'c', text:'At a regular point so I\'m not caught off guard'},
+        {id:'d', text:'In writing first, so I can process it before any conversation'},
+      ]},
+      how:    {q:'What would make it easier to receive?', opts:[
+        {id:'a', text:'In writing so I can take it in without pressure'},
+        {id:'b', text:'In a private one-to-one, not in front of others'},
+        {id:'c', text:'Directly and clearly — without softening that obscures the point'},
+        {id:'d', text:'With time to ask questions or respond'},
+      ]},
+      scarce: {q:'What would helpful feedback look like for you?', opts:[
+        {id:'a', text:'Regular small check-ins rather than waiting for formal reviews'},
+        {id:'b', text:'Written feedback I can refer back to'},
+        {id:'c', text:'Being told what\'s working as well as what isn\'t'},
+        {id:'d', text:'Direct, honest feedback — I\'d rather know'},
+      ]},
+      balance:{q:'Why does that matter to you?', opts:[
+        {id:'a', text:'It helps me know what to keep doing, not just what to change'},
+        {id:'b', text:'I carry critical feedback heavily and I need context to manage that'},
+        {id:'c', text:'It\'s harder to hear what isn\'t working without knowing what is'},
+        {id:'d', text:'Positive feedback is harder to take in when it\'s generic — specific helps'},
+      ]},
+    },
+    tried:[
+      {id:'t1', text:'Asking for feedback more directly'},
+      {id:'t2', text:'Setting my own measures to judge against'},
+      {id:'t3', text:'Keeping a note of things that have gone well'},
+      {id:'t4', text:'Talking to a colleague I trust'},
+      {id:'t5', text:'Asking for written feedback rather than verbal'},
+    ],
+    suggestions:[
+      {text:'More regular, specific feedback — even brief — so I know where I stand'},
+      {text:'Feedback in a format that works for me — in writing, or with time to process it'},
+      {text:'What\'s going well named alongside what to work on'},
+      {text:'A regular check-in where feedback is built in, not only given when something goes wrong'},
+    ],
+  },
+
+  {
+    id:'environment', group:'env',
+    text:'My working environment makes it hard to do my best work',
+    drillL1:{ q:'What about the environment makes it harder?', hint:'Pick everything that feels relevant.', opts:[
+      {id:'noise',   text:'Noise or unpredictable sound'},
+      {id:'space',   text:'The physical space isn\'t set up for how I work best'},
+      {id:'busy',    text:'The level of activity around me makes it hard to concentrate'},
+      {id:'remote',  text:'Working remotely creates challenges for me'},
+      {id:'commute', text:'Getting to work takes a significant toll on my energy'},
+    ]},
+    drillL2:{
+      noise:   {q:'What kind of noise is hardest?', opts:[
+        {id:'a', text:'Unpredictable or sudden sounds'},
+        {id:'b', text:'Background conversation I can\'t tune out'},
+        {id:'c', text:'Open-plan environments in general'},
+        {id:'d', text:'Noise from outside that I can\'t control'},
+      ]},
+      space:   {q:'What isn\'t working about the space?', opts:[
+        {id:'a', text:'I don\'t have a consistent space I can settle into'},
+        {id:'b', text:'There\'s nowhere quiet when I need it'},
+        {id:'c', text:'The lighting or temperature is hard for me'},
+        {id:'d', text:'I can\'t set things up in a way that helps me focus'},
+      ]},
+      busy:    {q:'What disrupts your concentration most?', opts:[
+        {id:'a', text:'People moving around or stopping to chat'},
+        {id:'b', text:'Conversations happening around me'},
+        {id:'c', text:'Notifications and digital interruptions'},
+        {id:'d', text:'Being expected to be available and visible when I need to focus'},
+      ]},
+      remote:  {q:'What\'s hardest about working remotely?', opts:[
+        {id:'a', text:'I find it harder to feel connected to colleagues and what\'s going on'},
+        {id:'b', text:'The boundary between work and home is hard to manage'},
+        {id:'c', text:'Getting informal support when I need it is harder'},
+        {id:'d', text:'Communication doesn\'t always work as well — I miss things or get missed'},
+      ]},
+      commute: {q:'What about the commute is hardest?', opts:[
+        {id:'a', text:'I arrive already depleted before the day has started'},
+        {id:'b', text:'The unpredictability makes it harder to manage'},
+        {id:'c', text:'The sensory demands — crowding, noise, stimulation'},
+        {id:'d', text:'The time it takes out of my day makes everything else harder to manage'},
+      ]},
+    },
+    tried:[
+      {id:'t1', text:'Finding a quieter space when I can'},
+      {id:'t2', text:'Using headphones to manage noise'},
+      {id:'t3', text:'Working from home when possible'},
+      {id:'t4', text:'Adjusting my start time to avoid peak demands'},
+      {id:'t5', text:'Raising it with my manager'},
+    ],
+    suggestions:[
+      {text:'Access to a quiet space when I need to do focused work'},
+      {text:'Flexibility about where I work on days when the environment is particularly difficult'},
+      {text:'A conversation about what working environment helps me do my best work'},
+      {text:'Some control over how my workspace is set up'},
+    ],
+  },
+
+  {
+    id:'workstyle', group:'env',
+    text:'Some of the ways I\'m asked to work don\'t play to how I work best',
+    drillL1:{ q:'What feels like a mismatch?', hint:'Select all that apply.', opts:[
+      {id:'pace',   text:'The pace or rhythm of how things are expected to happen'},
+      {id:'collab', text:'The amount or style of collaboration that\'s expected'},
+      {id:'comms',  text:'How communication is expected to work'},
+      {id:'output', text:'How progress or output is expected to be shown'},
+      {id:'hours',  text:'When I\'m expected to work or be available'},
+    ]},
+    drillL2:{
+      pace:   {q:'What specifically doesn\'t suit you?', opts:[
+        {id:'a', text:'Things move faster than I can process and respond well'},
+        {id:'b', text:'There\'s not enough time to do things properly before moving on'},
+        {id:'c', text:'The pace is unpredictable and I can\'t find a rhythm'},
+        {id:'d', text:'I work better in longer stretches and switching feels costly'},
+      ]},
+      collab: {q:'What doesn\'t suit about how collaboration works?', opts:[
+        {id:'a', text:'I\'m expected to contribute in groups in a way that doesn\'t suit me'},
+        {id:'b', text:'There\'s not enough room for independent work'},
+        {id:'c', text:'Ideas generation happens in a way that doesn\'t work for me — I need more time'},
+        {id:'d', text:'I\'m expected to be present and visible more than works for me'},
+      ]},
+      comms:  {q:'What doesn\'t work about how communication happens?', opts:[
+        {id:'a', text:'A lot happens verbally and I retain things better in writing'},
+        {id:'b', text:'Response times are expected to be faster than suits me'},
+        {id:'c', text:'I miss things because of how they\'re communicated'},
+        {id:'d', text:'Important information comes informally and I don\'t always catch it'},
+      ]},
+      output: {q:'What doesn\'t work about how progress is measured?', opts:[
+        {id:'a', text:'My work isn\'t always visible in the ways that seem to count'},
+        {id:'b', text:'I\'m expected to talk about what I\'ve done in ways I find hard'},
+        {id:'c', text:'Short-term output is valued more than longer-term contribution'},
+        {id:'d', text:'I work in bursts and the output doesn\'t look consistent even when the quality is'},
+      ]},
+      hours:  {q:'What about availability is hard?', opts:[
+        {id:'a', text:'I\'m more effective at certain times and the expectations don\'t reflect that'},
+        {id:'b', text:'I\'m expected to be available in ways that don\'t leave room for recovery'},
+        {id:'c', text:'The boundary between working hours and personal time feels unclear'},
+        {id:'d', text:'I find it hard to protect the time I need to do my best work'},
+      ]},
+    },
+    tried:[
+      {id:'t1', text:'Adjusting how I work within what\'s possible'},
+      {id:'t2', text:'Talking to my manager about it'},
+      {id:'t3', text:'Finding approaches that work better for me'},
+      {id:'t4', text:'Adapting to how things are done as best I can'},
+      {id:'t5', text:'I haven\'t raised it directly yet'},
+    ],
+    suggestions:[
+      {text:'A conversation about the ways of working that suit me and what might be possible'},
+      {text:'Flexibility about how and when I work, where that\'s possible in my role'},
+      {text:'Alternative ways to contribute — written input, async working, different meeting formats'},
+      {text:'Recognition that different people work well in different ways'},
+    ],
+  },
+
+  {
+    id:'input', group:'env',
+    text:'I sometimes feel like things happen around my work without much input from me',
+    drillL1:{ q:'What tends to happen without enough involvement from you?', hint:'Pick as many as feel true.', opts:[
+      {id:'decisions',text:'Decisions that affect how I work or what I\'m doing'},
+      {id:'changes',  text:'Changes to my role, team or ways of working'},
+      {id:'planning', text:'Planning of work I\'m then expected to deliver'},
+      {id:'late',     text:'I find out about things after others, or too late to do anything with it'},
+      {id:'voice',    text:'My perspective isn\'t sought when it would be relevant'},
+    ]},
+    drillL2:{
+      decisions:{q:'What would better involvement look like?', opts:[
+        {id:'a', text:'Being consulted before decisions are made that affect me'},
+        {id:'b', text:'At least knowing why something has been decided'},
+        {id:'c', text:'A chance to raise concerns even when the decision is made'},
+        {id:'d', text:'Being in the room for conversations rather than just told outcomes'},
+      ]},
+      changes:  {q:'What makes those changes harder?', opts:[
+        {id:'a', text:'I find out at the same time as or after everyone else'},
+        {id:'b', text:'There\'s no space to ask questions or raise concerns'},
+        {id:'c', text:'I\'m expected to implement things I had no part in shaping'},
+        {id:'d', text:'The reason behind the change isn\'t explained'},
+      ]},
+      planning: {q:'What\'s the impact of not being involved in planning?', opts:[
+        {id:'a', text:'I\'m working to a brief I didn\'t help shape and it doesn\'t always make sense'},
+        {id:'b', text:'Things get missed that I could have flagged earlier'},
+        {id:'c', text:'I feel less ownership over the work'},
+        {id:'d', text:'It makes it harder for me to do the work well'},
+      ]},
+      late:     {q:'What\'s the impact of finding out late?', opts:[
+        {id:'a', text:'I\'ve already made plans or assumptions that have to change'},
+        {id:'b', text:'It\'s harder for me to adjust when I have less notice'},
+        {id:'c', text:'I find out through colleagues rather than directly'},
+        {id:'d', text:'It affects how much I trust what I\'m told'},
+      ]},
+      voice:    {q:'When is your perspective most missing?', opts:[
+        {id:'a', text:'In meetings where decisions are made without asking me'},
+        {id:'b', text:'When things affecting my role are planned without me'},
+        {id:'c', text:'When I have relevant experience or context that isn\'t drawn on'},
+        {id:'d', text:'Generally — I feel more peripheral to decisions than I\'d like'},
+      ]},
+    },
+    tried:[
+      {id:'t1', text:'Asking to be involved more'},
+      {id:'t2', text:'Raising it with my manager'},
+      {id:'t3', text:'Finding other ways to contribute my perspective'},
+      {id:'t4', text:'Accepting it and adapting as best I can'},
+      {id:'t5', text:'I haven\'t raised it directly yet'},
+    ],
+    suggestions:[
+      {text:'Being included in conversations and planning that affect my work, not just told after'},
+      {text:'A way to share input or raise questions before decisions are finalised'},
+      {text:'Being kept informed at the same time as others when things change'},
+      {text:'My perspective being actively sought in areas where I have relevant experience'},
+    ],
+  },
+
+  {
+    id:'support', group:'env',
+    text:'I\'m not always sure what support is available to me or how to access it',
+    drillL1:{ q:'What feels unclear about support?', hint:'Select all that apply.', opts:[
+      {id:'exists',  text:'I\'m not sure what support actually exists here'},
+      {id:'access',  text:'I know some support exists but I\'m not sure how to access it'},
+      {id:'right',   text:'I\'m not sure whether what I\'m experiencing warrants asking for support'},
+      {id:'who',     text:'I\'m not sure who the right person to go to is'},
+      {id:'formal',  text:'The support I know about feels too formal for what I need right now'},
+    ]},
+    drillL2:{
+      exists:  {q:'What kind of support would be most useful?', opts:[
+        {id:'a', text:'Practical support with how my work is set up'},
+        {id:'b', text:'Someone to talk to informally when things are hard'},
+        {id:'c', text:'More structured support — occupational health, employee assistance'},
+        {id:'d', text:'I\'m not entirely sure — I just know I could do with more than I have'},
+      ]},
+      access:  {q:'What gets in the way of accessing it?', opts:[
+        {id:'a', text:'I\'m not sure of the process or who to contact'},
+        {id:'b', text:'It feels like a big step and I\'m not ready for that yet'},
+        {id:'c', text:'I\'m worried about what it might set in motion'},
+        {id:'d', text:'I\'ve tried before and it wasn\'t straightforward'},
+      ]},
+      right:   {q:'What makes you uncertain?', opts:[
+        {id:'a', text:'I worry my situation isn\'t significant enough to warrant it'},
+        {id:'b', text:'I find it hard to describe what I\'m experiencing'},
+        {id:'c', text:'I don\'t want to take up support that someone else might need more'},
+        {id:'d', text:'I\'m not sure what the threshold is for asking here'},
+      ]},
+      who:     {q:'What makes it hard to know who to go to?', opts:[
+        {id:'a', text:'I\'m not sure who handles what'},
+        {id:'b', text:'I\'m not confident the right person would understand'},
+        {id:'c', text:'I don\'t have a strong enough relationship with the obvious people'},
+        {id:'d', text:'I\'m not sure how confidential it would be'},
+      ]},
+      formal:  {q:'What would less formal support look like for you?', opts:[
+        {id:'a', text:'A trusted colleague or informal mentor I could talk to'},
+        {id:'b', text:'A low-key conversation with my manager without it becoming a process'},
+        {id:'c', text:'A way to flag things without it becoming a formal record'},
+        {id:'d', text:'Knowing someone would check in on me without me having to ask'},
+      ]},
+    },
+    tried:[
+      {id:'t1', text:'Looking for information about what\'s available'},
+      {id:'t2', text:'Asking a colleague'},
+      {id:'t3', text:'Approaching HR or my manager'},
+      {id:'t4', text:'Talking to someone outside of work'},
+      {id:'t5', text:'I haven\'t done anything yet — I\'m not sure where to start'},
+    ],
+    suggestions:[
+      {text:'Clear information about what support is available and how to access it'},
+      {text:'A low-key way to raise that I could do with some support, without it automatically becoming formal'},
+      {text:'A named person who could help me find the right kind of support'},
+      {text:'Knowing that asking for support is expected and won\'t be held against me'},
+    ],
+  },
+
+  {
+    id:'conversations', group:'env',
+    text:'Some of the conversations I need to have at work feel hard to start',
+    drillL1:{ q:'What makes those conversations hard to start?', hint:'Pick everything that feels true.', opts:[
+      {id:'outcome', text:'I\'m not sure how they\'ll go or what might come from them'},
+      {id:'words',   text:'I find it hard to find the right words or explain what I mean'},
+      {id:'timing',  text:'I\'m not sure when or how to raise it'},
+      {id:'worth',   text:'I\'m not sure if it\'s worth raising'},
+      {id:'safe',    text:'I\'m not confident it\'s safe to have the conversation'},
+    ]},
+    drillL2:{
+      outcome:{q:'What are you most uncertain about?', opts:[
+        {id:'a', text:'How the other person will react'},
+        {id:'b', text:'Whether it will make things better or worse'},
+        {id:'c', text:'Whether what I say will be understood the way I mean it'},
+        {id:'d', text:'What will happen next — what it might set in motion'},
+      ]},
+      words:  {q:'What makes it hard to find the words?', opts:[
+        {id:'a', text:'The situation is complicated and I\'m not sure how to simplify it'},
+        {id:'b', text:'I\'m worried about saying it wrong and being misunderstood'},
+        {id:'c', text:'I find this kind of conversation genuinely difficult to articulate'},
+        {id:'d', text:'By the time I\'ve worked out what to say the moment has passed'},
+      ]},
+      timing: {q:'What makes timing hard?', opts:[
+        {id:'a', text:'There\'s no obvious natural moment to raise it'},
+        {id:'b', text:'The people I need to talk to don\'t seem available or approachable'},
+        {id:'c', text:'I keep waiting for the right moment and it doesn\'t come'},
+        {id:'d', text:'One-to-ones are infrequent enough that I carry things for too long'},
+      ]},
+      worth:  {q:'What makes you question it?', opts:[
+        {id:'a', text:'I worry it won\'t change anything'},
+        {id:'b', text:'I\'m not sure it\'s significant enough to bring up'},
+        {id:'c', text:'I don\'t want to seem like I\'m complaining or making a fuss'},
+        {id:'d', text:'It feels like something I should just deal with on my own'},
+      ]},
+      safe:   {q:'What makes you uncertain about safety?', opts:[
+        {id:'a', text:'I\'m not sure how it will be received'},
+        {id:'b', text:'I\'ve raised things before and it hasn\'t gone well'},
+        {id:'c', text:'I\'m worried about the relationship being affected'},
+        {id:'d', text:'I\'m concerned about what might be noted or what it might start'},
+      ]},
+    },
+    tried:[
+      {id:'t1', text:'Writing down what I want to say before a conversation'},
+      {id:'t2', text:'Talking it through with someone I trust first'},
+      {id:'t3', text:'Raising it by message or email rather than in person'},
+      {id:'t4', text:'Waiting for the right moment — which hasn\'t come yet'},
+      {id:'t5', text:'I haven\'t raised it yet — I\'m still working out how'},
+    ],
+    suggestions:[
+      {text:'A regular one-to-one where I know I can raise things — so I don\'t have to create a special moment'},
+      {text:'A way to flag in advance that there\'s something I\'d like to discuss'},
+      {text:'A manager who makes it genuinely clear they want to hear how things are'},
+      {text:'The option to raise things in writing first when that works better for me'},
+    ],
+  },
+
+  {
+    id:'information', group:'env',
+    text:'Some of the information I receive is hard for me to understand or process',
+    drillL1:{ q:'What makes information hard to process?', hint:'Select everything that feels true.', opts:[
+      {id:'format',  text:'The format it comes in doesn\'t work well for me'},
+      {id:'volume',  text:'There\'s too much at once and I can\'t take it all in'},
+      {id:'speed',   text:'It comes too fast — I need more time to absorb things'},
+      {id:'context', text:'There isn\'t enough context or background for it to make sense'},
+      {id:'verbal',  text:'Information given verbally is harder for me to retain than written'},
+    ]},
+    drillL2:{
+      format:  {q:'What format would work better?', opts:[
+        {id:'a', text:'Written rather than verbal — so I can go back to it'},
+        {id:'b', text:'Visual — diagrams, bullet points, clear structure'},
+        {id:'c', text:'One thing at a time rather than everything together'},
+        {id:'d', text:'A summary after a conversation or meeting'},
+      ]},
+      volume:  {q:'What would help when there\'s a lot?', opts:[
+        {id:'a', text:'A clear sense of what\'s most important to focus on first'},
+        {id:'b', text:'Information broken into smaller pieces with time between them'},
+        {id:'c', text:'The ability to ask questions and check my understanding'},
+        {id:'d', text:'A written version I can come back to when I\'m ready'},
+      ]},
+      speed:   {q:'What would adequate time look like?', opts:[
+        {id:'a', text:'Information shared before any conversation about it'},
+        {id:'b', text:'A pause after key things are said before moving on'},
+        {id:'c', text:'Not being expected to respond or decide in the same moment'},
+        {id:'d', text:'A follow-up conversation after I\'ve had time to process'},
+      ]},
+      context: {q:'What context is usually missing?', opts:[
+        {id:'a', text:'Why this matters or where it fits in the bigger picture'},
+        {id:'b', text:'What I\'m expected to do with it'},
+        {id:'c', text:'What\'s changed and why'},
+        {id:'d', text:'What the implications are if I get it wrong'},
+      ]},
+      verbal:  {q:'What would help with verbally delivered information?', opts:[
+        {id:'a', text:'A written follow-up or summary after verbal conversations'},
+        {id:'b', text:'Key things noted down even briefly in a meeting'},
+        {id:'c', text:'Being able to record conversations to refer back to'},
+        {id:'d', text:'Information sent to me before a meeting rather than in it'},
+      ]},
+    },
+    tried:[
+      {id:'t1', text:'Taking notes during meetings or conversations'},
+      {id:'t2', text:'Asking for things in writing'},
+      {id:'t3', text:'Going back over things a few times to take them in'},
+      {id:'t4', text:'Asking for things to be repeated or clarified'},
+      {id:'t5', text:'Creating my own written version of verbal information'},
+    ],
+    suggestions:[
+      {text:'Written summaries after meetings or important conversations'},
+      {text:'Information shared in a format that works for me — not just what\'s easiest to send'},
+      {text:'Time to process before I\'m expected to respond or act'},
+      {text:'A way to check understanding without it feeling like I wasn\'t paying attention'},
+    ],
+  },
+];
+
+/* ── Stages ─────────────────────────────────────────────────────── */
+// welcome / checkin / recog-me / recog-env / drill / tried / suggestions / summary
+const STAGES = ['welcome','checkin','recog-me','recog-env','drill','tried','suggestions','share','summary'];
+
+/* ── State ──────────────────────────────────────────────────────── */
+let stage = 0;
+let wellbeing = 50;
+let jdLoaded = false;
+
+let recognised  = {};  // id -> null|'yes'|'sometimes'
+let shareChoice = {};  // id -> null|'share'|'private'
+let drillL1     = {};  // id -> Set of optIds
+let drillL2     = {};  // id -> { optId: Set of l2optIds }
+let drillFree   = {};  // id -> string
+let triedRatings= {};  // id -> { triedId: rating }
+let triedFree   = {};  // id -> string
+let selectedSugs= {};  // id -> { si: bool }
+
+ITEMS.forEach(r => {
+  recognised[r.id]   = null;
+  shareChoice[r.id]  = null;
+  drillL1[r.id]      = new Set();
+  drillL2[r.id]      = {};
+  drillFree[r.id]    = '';
+  triedRatings[r.id] = {};
+  triedFree[r.id]    = '';
+  selectedSugs[r.id] = {};
+});
+
+let drillQueue = [];
+let drillIdx   = 0;
+let shareDecision = null;
+
+/* ── Computed ───────────────────────────────────────────────────── */
+function getRecognised() {
+  return ITEMS.filter(r => recognised[r.id] === 'yes' || recognised[r.id] === 'sometimes');
+}
+function getShared()  { return getRecognised().filter(r => shareChoice[r.id] === 'share'); }
+function getPrivate() { return getRecognised().filter(r => shareChoice[r.id] !== 'share'); }
+
+function wbLabel(v) {
+  if (v >= 80) return 'Things are going pretty well right now.';
+  if (v >= 60) return 'Things are okay, though some parts are harder than others.';
+  if (v >= 40) return 'Some things are tougher than they could be right now.';
+  if (v >= 20) return 'Things are harder than I\'d like to admit at the moment.';
+  return 'Things are really hard at the moment.';
+}
+function wbDesc(v) {
+  if (v >= 80) return 'That\'s good to hear. Even when things are going well, this tool can help you put words to what\'s working — and notice anything worth keeping an eye on.';
+  if (v >= 60) return 'That\'s an honest place to start. The next steps can help you get more specific about the parts that are harder than they could be.';
+  if (v >= 40) return 'That takes something to say. Take this at your own pace — you\'re in control of everything that happens with it.';
+  if (v >= 20) return 'Thank you for being honest about that. That\'s exactly what this is here for.';
+  return 'That\'s a lot to be sitting with. Take your time — there\'s no rush with any of this.';
+}
+function wbColor(v) {
+  if (v >= 60) return '#2E7D52';
+  if (v >= 40) return '#7B5800';
+  return '#C0392B';
+}
+
+function clean(s) {
+  return (s||'').replace(/[^\x20-\x7E\u00A0-\u00FF\u2013\u2014\u2018\u2019\u201C\u201D]/g,'').trim();
+}
+
+/* ── Pips ───────────────────────────────────────────────────────── */
+function renderPips() {
+  const el = document.getElementById('pips');
+  el.innerHTML = '';
+  STAGES.forEach((_,i) => {
+    const d = document.createElement('div');
+    d.className = 'pip'+(i<stage?' done':i===stage?' active':'');
+    el.appendChild(d);
+  });
+  const labels = ['Welcome','Check in','Your experience','Your environment','Exploring','What\'s helped','What might help','Sharing','Your summary'];
+  document.getElementById('sc').textContent = labels[stage]||'';
+}
+
+/* ── Navigation ─────────────────────────────────────────────────── */
+function goNext() {
+  if (stage === 3) { // after recog-env, build drill queue
+    drillQueue = getRecognised();
+    drillIdx = 0;
+    stage = drillQueue.length > 0 ? 4 : 5;
+    render(); return;
+  }
+  if (stage === 4) {
+    drillIdx++;
+    if (drillIdx >= drillQueue.length) { stage = 5; }
+    render(); return;
+  }
+  stage = Math.min(stage+1, STAGES.length-1);
+  render();
+}
+function goBack() {
+  if (stage === 4 && drillIdx > 0) { drillIdx--; render(); return; }
+  if (stage === 4 && drillIdx === 0) { stage = 3; render(); return; }
+  if (stage > 0) { stage--; render(); }
+}
+
+/* ── Renderers ──────────────────────────────────────────────────── */
+function renderWelcome() {
+  return `
+    <div class="s-eyebrow">Welcome</div>
+    <div class="s-head">A space to explore how work is really going for you.</div>
+    <div class="s-warm">Curious, honest, and entirely at your own pace.</div>
+    <div class="card card-warm">
+      <p>This tool helps you notice what\'s working, what\'s harder than it needs to be, and what small things might make a difference. You don\'t need to be struggling to find it useful — just curious.</p>
+      <p><strong>You\'re in control throughout.</strong> Nothing goes anywhere without your say-so. At the end you\'ll choose what, if anything, to share.</p>
+      <p>Think of this as a helpful first step — a way to explore things for yourself before any more formal conversation or support.</p>
+    </div>
+    <div class="jd-box" onclick="toggleJD()" role="button" tabindex="0">
+      <div class="jd-icon">📄</div>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:500;color:var(--plum)">${jdLoaded?'Job description loaded':'Add your job description'}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:1px">${jdLoaded?'Suggestions will be tailored to your role':'Optional — helps tailor suggestions to your role'}</div>
+      </div>
+      ${jdLoaded?'<div class="jd-badge">Active</div>':'<div style="font-size:11px;color:var(--muted)">+ Add</div>'}
+    </div>
+    <p class="note-quiet">Work Explorer is a great starting point — and works well alongside support from Occupational Health, Access to Work, or your HR team when you\'re ready for that.</p>
+    <div class="nav"><span></span><button class="btn-next" onclick="goNext()">Let\'s start →</button></div>
+    <div class="spacer"></div>`;
+}
+
+function renderCheckin() {
+  const col = wbColor(wellbeing);
+  return `
+    <div class="s-eyebrow">First things first</div>
+    <div class="s-head">How are things going at the moment?</div>
+    <div class="s-warm">Not the professional answer — the honest one.</div>
+    <div class="s-sub">If someone who knew you well asked how work was going right now, where would you land? Slide to wherever feels true.</div>
+    <div class="spectrum-wrap">
+      <div class="spectrum-track">
+        <input type="range" class="spectrum" min="0" max="100" value="${wellbeing}" step="1"
+          oninput="wellbeing=parseInt(this.value);reRenderCheckin()" aria-label="How work is feeling">
+      </div>
+      <div class="spectrum-ends"><span>Pretty good</span><span>Really hard</span></div>
+    </div>
+    <div style="padding:0 1.25rem .35rem">
+      <div class="spectrum-label" style="color:${col}">${wbLabel(wellbeing)}</div>
+    </div>
+    <div class="note note-warm">${wbDesc(wellbeing)}</div>
+    <div class="nav">
+      <button class="btn-back" onclick="goBack()">← Back</button>
+      <button class="btn-next" onclick="goNext()">Next →</button>
+    </div>
+    <div class="spacer"></div>`;
+}
+
+function renderRecogGroup(group) {
+  const items = ITEMS.filter(r => r.group === group);
+  const isMe  = group === 'me';
+  const selCount = getRecognised().length;
+
+  function tileHtml(r) {
+    const state = recognised[r.id];
+    const cls   = state === 'yes' ? ' yes' : state === 'sometimes' ? ' sometimes' : '';
+    const lbl   = state === 'yes' ? 'Yes' : state === 'sometimes' ? 'Sometimes' : '';
+    return `<div class="recog-tile${cls}" id="rt-${r.id}">
+      <div class="recog-top" onclick="cycleRecog('${r.id}')" role="button" tabindex="0" style="cursor:pointer">
+        <div class="recog-dot"><div class="recog-dot-in"></div></div>
+        <div class="recog-text">${r.text}</div>
+        ${state ? `<div class="recog-lbl">${lbl}</div>` : ''}
+      </div>
+    </div>`;
+  }
+
+  return `
+    <div class="s-eyebrow">${isMe ? 'Your experience' : 'Your environment'}</div>
+    <div class="s-head">${isMe ? 'Things you might recognise about yourself at work' : 'Things you might recognise about how work is set up around you'}</div>
+    <div class="s-warm">${isMe ? 'These are about your own experience — not anyone else\'s behaviour.' : 'These are about the conditions, structure and setup around your work.'}</div>
+    <div class="s-sub">${isMe
+      ? 'Tap once if something sounds familiar. Tap again for "sometimes." Tap a third time to clear. Once you\'ve selected something, you\'ll see an option to choose whether it goes into a shared summary or stays just for you.'
+      : 'Same as before — tap to select, choose whether to share or keep private.'}</div>
+    <div class="recog-legend">
+      <div class="rl"><div class="rl-dot" style="background:var(--purple)"></div>Yes, this is me</div>
+      <div class="rl"><div class="rl-dot" style="background:var(--amber)"></div>Sometimes</div>
+      <div class="rl"><div class="rl-dot" style="background:#DDD3E8"></div>Not selected</div>
+    </div>
+    <div class="recog-list">${items.map(tileHtml).join('')}</div>
+    ${selCount > 0 ? `<div class="note note-green" style="margin-top:.5rem">You\'ve identified ${selCount} thing${selCount!==1?'s':''} so far — the next steps help you get more specific about each one.</div>` : ''}
+    <div class="nav">
+      <button class="btn-back" onclick="goBack()">← Back</button>
+      <button class="btn-next" onclick="goNext()" ${isMe&&selCount===0&&ITEMS.filter(r=>r.group==='env'&&(recognised[r.id]==='yes'||recognised[r.id]==='sometimes')).length===0?'':''}>${isMe ? 'Next →' : getRecognised().length===0?'Skip to summary →':'Explore these →'}</button>
+    </div>
+    <div class="spacer"></div>`;
+}
+
+function renderDrill() {
+  const item = drillQueue[drillIdx];
+  if (!item) { goNext(); return ''; }
+  const l1sel = drillL1[item.id];
+  const l1done = l1sel.size > 0;
+  const canNext = l1done;
+  const isLast  = drillIdx >= drillQueue.length - 1;
+  const stateLabel = recognised[item.id]==='yes'?'You said: yes, this is me':'You said: sometimes';
+
+  let html = `
+    <div class="s-eyebrow">Getting specific — ${drillIdx+1} of ${drillQueue.length}</div>
+    <div class="s-head">Let\'s explore this a bit more</div>
+    <div class="s-warm">The more specific this gets, the more useful it\'ll be — whether you keep it private or use it to start a conversation.</div>
+    <div class="drill-prog">
+      <div class="drill-pips">
+        ${drillQueue.map((_,i)=>`<div class="dpip${i<drillIdx?' done':i===drillIdx?' active':''}"></div>`).join('')}
+      </div>
+      <div class="drill-prog-txt">${drillIdx+1} of ${drillQueue.length}</div>
+    </div>
+    <div class="drill-card" id="l1-card-${item.id}">
+      <div class="drill-ctx"><strong>${stateLabel}:</strong> "${item.text}"</div>
+      <div class="drill-q">${item.drillL1.q}</div>
+      <div class="drill-hint">${item.drillL1.hint}</div>
+      <div class="drill-opts">
+        ${item.drillL1.opts.map(o=>`
+          <div class="drill-opt${l1sel.has(o.id)?' sel':''}"
+            data-l1="${item.id}-${o.id}"
+            onclick="toggleL1('${item.id}','${o.id}')"
+            role="button" tabindex="0">
+            <div class="dopt-dot"><div class="dopt-in"></div></div>
+            <div class="dopt-txt">${o.text}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  // Level 2 blocks are injected dynamically by updateL2Block when L1 options are toggled
+  // On initial render, rebuild any L2 blocks for already-selected L1 options
+  // (handles back-navigation correctly)
+  if (l1done) {
+    [...l1sel].forEach(optId => {
+      const l2def = item.drillL2[optId];
+      if (!l2def) return;
+      if (!drillL2[item.id][optId]) drillL2[item.id][optId] = new Set();
+      const l2sel = drillL2[item.id][optId];
+      const l1opt = item.drillL1.opts.find(o=>o.id===optId);
+      html += `<div class="drill-card" id="l2-block-${item.id}-${optId}">
+        <div class="drill-ctx">You selected: <strong>${l1opt.text}</strong></div>
+        <div class="drill-q">${l2def.q}</div>
+        <div class="drill-hint">Pick as many as feel true.</div>
+        <div class="drill-opts">
+          ${l2def.opts.map(o=>`
+            <div class="drill-opt${l2sel.has(o.id)?' sel':''}"
+              data-l2="${item.id}-${optId}-${o.id}"
+              onclick="toggleL2('${item.id}','${optId}','${o.id}')"
+              role="button" tabindex="0">
+              <div class="dopt-dot"><div class="dopt-in"></div></div>
+              <div class="dopt-txt">${o.text}</div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+    });
+  }
+
+  // Free text
+  html += `<div class="free-text-wrap">
+    <div class="free-text-label">Anything else that would help capture this — in your own words?</div>
+    <textarea class="free-text" rows="3" placeholder="Optional — add anything the options above didn\'t quite cover..."
+      oninput="drillFree['${item.id}']=this.value">${drillFree[item.id]||''}</textarea>
+  </div>`;
+
+  html += `<div class="nav">
+    <button class="btn-back" onclick="goBack()">← Back</button>
+    <button class="btn-next" onclick="goNext()" ${canNext?'':'disabled'}>${isLast?'What\'s been tried →':'Next →'}</button>
+  </div><div class="spacer"></div>`;
+  return html;
+}
+
+function renderTried() {
+  const items = getRecognised();
+  if (!items.length) { goNext(); return ''; }
+
+  let html = `
+    <div class="s-eyebrow">One quick thing</div>
+    <div class="s-head">Has anything already helped?</div>
+    <div class="s-warm">If you\'ve already tried something — even if it only helped a little — it\'s worth knowing.</div>
+    <div class="s-sub">This is optional. If nothing comes to mind, just move on. There are no right answers here.</div>`;
+
+  items.forEach(item => {
+    html += `<div style="padding:0 1.25rem .25rem">
+      <div style="font-size:10px;font-weight:600;color:var(--purple);letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px">${item.text.slice(0,52)}${item.text.length>52?'...':''}</div>
+    </div>
+    <div class="free-text-wrap">
+      <textarea class="free-text" rows="2"
+        placeholder="Anything you\'ve tried — or anything that\'s helped even a little... (optional)"
+        oninput="triedFree[\'${item.id}\']=this.value">${triedFree[item.id]||''}</textarea>
+    </div>`;
+  });
+
+  html += `<div class="nav">
+    <button class="btn-back" onclick="goBack()">← Back</button>
+    <button class="btn-next" onclick="goNext()">What might help →</button>
+  </div><div class="spacer"></div>`;
+  return html;
+}
+
+function renderSuggestions() {
+  const items = getRecognised();
+  let html = `
+    <div class="s-eyebrow">What might help</div>
+    <div class="s-head">Some things worth exploring</div>
+    <div class="s-warm">These are starting points — conversation starters, not guarantees.</div>
+    <div class="s-sub">Select the ones that feel relevant. They\'ll come through in your summary. You can always add your own thoughts in the free text field at the end.</div>
+    <div class="note note-warm">What\'s possible will vary depending on your role and organisation. These are things worth raising — not demands. Your employer\'s usual processes will shape what can be agreed.</div>`;
+
+  items.forEach(item => {
+    if (!selectedSugs[item.id]) selectedSugs[item.id] = {};
+    const triedNote = triedFree[item.id]?.trim();
+    html += `<div style="padding:.5rem 1.25rem .25rem">
+      <div style="font-size:10px;font-weight:600;color:var(--purple);letter-spacing:.08em;text-transform:uppercase">${item.text.slice(0,52)}${item.text.length>52?'...':''}</div>
+    </div>`;
+    if (triedNote) {
+      html += `<div class="note note-green" style="margin-bottom:4px">Already tried: ${triedNote}</div>`;
+    }
+    html += `<div class="sug-grid">`;
+    item.suggestions.forEach((s,si) => {
+      const isSel = selectedSugs[item.id][si];
+      html += `<div class="sug-item${isSel?' sel':''}" onclick="toggleSug('${item.id}',${si})">
+        <div class="sug-dot"><div class="sug-dot-in"></div></div>
+        <div class="sug-text">${s.text}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+
+  html += `<div class="nav">
+    <button class="btn-back" onclick="goBack()">← Back</button>
+    <button class="btn-next" onclick="goNext()">Build my summary →</button>
+  </div><div class="spacer"></div>`;
+  return html;
+}
+
+function renderShare() {
+  return `
+    <div class="s-eyebrow">Almost there</div>
+    <div class="s-head">What would you like to do with this?</div>
+    <div class="s-warm">You've done the hard part. Now you choose what happens next.</div>
+    <div class="s-sub">There's no right answer. Sometimes just having it written down for yourself is enough.</div>
+    <div class="share-options">
+      <div class="share-opt${shareDecision==='private'?' sel':''}" onclick="setShareDecision('private')">
+        <div class="share-opt-icon">🔒</div>
+        <div>
+          <div class="share-opt-title">Keep it private for now</div>
+          <div class="share-opt-desc">Download a summary just for yourself. You can decide what to do with it later — there's no rush.</div>
+        </div>
+      </div>
+      <div class="share-opt${shareDecision==='manager'?' sel':''}" onclick="setShareDecision('manager')">
+        <div class="share-opt-icon">👤</div>
+        <div>
+          <div class="share-opt-title">Start a conversation with my manager</div>
+          <div class="share-opt-desc">A warm, clear summary designed to open a conversation — not make a complaint. A good starting point.</div>
+        </div>
+      </div>
+      <div class="share-opt${shareDecision==='hr'?' sel':''}" onclick="setShareDecision('hr')">
+        <div class="share-opt-icon">🏢</div>
+        <div>
+          <div class="share-opt-title">Bring this to HR or a people team</div>
+          <div class="share-opt-desc">A clear summary suitable for a more structured support conversation.</div>
+        </div>
+      </div>
+      <div class="share-opt${shareDecision==='oh'?' sel':''}" onclick="setShareDecision('oh')">
+        <div class="share-opt-icon">🩺</div>
+        <div>
+          <div class="share-opt-title">Use this to prepare for Occupational Health or Access to Work</div>
+          <div class="share-opt-desc">A useful starting point before a more specialist assessment — helps you arrive with your thoughts already organised.</div>
+        </div>
+      </div>
+      <div class="share-opt${shareDecision==='unsure'?' sel':''}" onclick="setShareDecision('unsure')">
+        <div class="share-opt-icon">💭</div>
+        <div>
+          <div class="share-opt-title">Not sure yet</div>
+          <div class="share-opt-desc">Download privately and sit with it. You don't have to decide now.</div>
+        </div>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="goBack()">← Back</button>
+      <button class="btn-next" onclick="goNext()" ${shareDecision?'':'disabled'}>Build my summary →</button>
+    </div>
+    <div class="spacer"></div>`;
+}
+
+function renderSummary() {
+  const shared  = getShared();
+  const priv    = getPrivate();
+  const allSugs = [];
+  getRecognised().forEach(item => {
+    item.suggestions.forEach((s,si) => {
+      if (selectedSugs[item.id]?.[si]) allSugs.push(s.text);
+    });
+  });
+  const helping = [];
+  getRecognised().forEach(item => {
+    if (triedFree[item.id]?.trim()) helping.push(triedFree[item.id].trim());
+  });
+
+  /* Build a synthesised opening paragraph */
+  let openPara = `${wbLabel(wellbeing)}`;
+  if (shared.length) {
+    openPara += ` There are ${shared.length} area${shared.length!==1?'s':''} worth exploring in more detail below.`;
+  }
+  if (helping.length) {
+    openPara += ` Some things are already helping.`;
+  }
+  if (allSugs.length) {
+    openPara += ` There are also some things that might be worth trying.`;
+  }
+
+  let html = `
+    <div class="s-eyebrow" style="padding-top:1.25rem">Your summary</div>
+    <div class="s-sub">Here\'s what you\'ve identified. Download it for yourself, or use it to start a conversation.</div>
+    <div class="summary-card">
+      <div class="sum-hdr">
+        <div class="sum-hdr-title">Work Explorer</div>
+        <div class="sum-hdr-sub">${
+          shareDecision==='manager'?'For a conversation with my manager':
+          shareDecision==='hr'?'For a conversation with HR':
+          shareDecision==='oh'?'To prepare for Occupational Health or Access to Work':
+          'Private — for my own reflection'
+        }</div>
+        <div class="sum-hdr-bih">Brain in Hand · ${new Date().toLocaleDateString('en-GB')}</div>
+      </div>
+      <div class="sum-body">
+        <div>
+          <div class="sum-st">In a nutshell</div>
+          <div class="sum-para">${openPara}</div>
+        </div>`;
+
+  if (shared.length) {
+    html += `<div><div class="sum-st">Where things are harder — in more detail</div>`;
+    shared.forEach(item => {
+      const l1s = [...(drillL1[item.id]||new Set())].map(id=>item.drillL1.opts.find(o=>o.id===id)?.text).filter(Boolean);
+      const l2texts = [];
+      Object.entries(drillL2[item.id]||{}).forEach(([optId, l2set])=>{
+        const l2def = item.drillL2[optId];
+        if (!l2def) return;
+        [...l2set].forEach(l2id=>{
+          const opt = l2def.opts.find(o=>o.id===l2id);
+          if (opt) l2texts.push(opt.text);
+        });
+      });
+      const free = drillFree[item.id]?.trim();
+      html += `<div class="sum-drill">
+        <div class="sum-drill-text">${item.text}</div>
+        ${l1s.map(t=>`<div class="sum-drill-l1">\u2192 ${t}</div>`).join('')}
+        ${l2texts.map(t=>`<div class="sum-drill-l2">\u2192 ${t}</div>`).join('')}
+        ${free?`<div class="sum-drill-l2">\u2192 ${free}</div>`:''}
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  if (helping.length) {
+    html += `<div><div class="sum-st">What\'s already helping</div>`;
+    helping.forEach(t=>{ html+=`<div class="sum-item green-i">${t}</div>`; });
+    html += `</div>`;
+  }
+
+  if (allSugs.length) {
+    html += `<div><div class="sum-st">Things worth exploring</div>`;
+    allSugs.forEach(s=>{ html+=`<div class="sum-item amber-i">${s}</div>`; });
+    html += `</div>`;
+  }
+
+  if (priv.length) {
+    html += `<div><div class="sum-st" style="color:var(--priv)">Private notes — just for you</div>`;
+    priv.forEach(item=>{
+      const l1s = [...(drillL1[item.id]||new Set())].map(id=>item.drillL1.opts.find(o=>o.id===id)?.text).filter(Boolean);
+      html += `<div class="sum-item priv-i">
+        <div style="font-weight:500">${item.text}</div>
+        ${l1s.map(t=>`<div style="font-size:11px;color:var(--priv);margin-top:2px">\u2192 ${t}</div>`).join('')}
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  html += `<div class="sum-caveat">This summary reflects your own experience and is a starting point for a conversation — not a formal document. It sits alongside, rather than replacing, any processes your organisation has in place for workplace support.</div>
+      </div>
+    </div>
+    <button class="btn-action" onclick="downloadPDF()">⬇ Download my summary</button>
+    <button class="btn-restart" onclick="restart()">Start again</button>
+    <div class="spacer"></div>`;
+  return html;
+}
+
+/* ── PDF ────────────────────────────────────────────────────────── */
+async function downloadPDF() {
+  const ov = document.createElement('div');
+  ov.className='pdf-loading';
+  ov.innerHTML=`<div class="pdf-spinner"></div><div class="pdf-loading-text">Building your summary\u2026</div>`;
+  document.body.appendChild(ov);
+  await new Promise(r=>setTimeout(r,50));
+  try {
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const W=210,M=18,col=W-M*2; let y=0;
+    const PLUM=[27,0,46],PURPLE=[142,60,206],LILAC=[234,193,255],PALE=[245,234,249];
+    const YELLOW=[255,229,92],MUTED=[107,90,126];
+    const GREEN=[46,125,82],GBG=[232,245,238];
+    const AMBER=[255,201,98],ABG=[255,248,225];
+    const PRIV=[74,111,165],PBG=[238,243,251],PBD=[184,207,238];
+
+    function ap(){doc.addPage();y=M;}
+    function chk(n){if(y+n>282)ap();}
+    function fr(x,ry,w,h,c,r=2){doc.setFillColor(...c);doc.roundedRect(x,ry,w,h,r,r,'F');}
+    function sr(x,ry,w,h,c,lw=0.3,r=2){doc.setDrawColor(...c);doc.setLineWidth(lw);doc.roundedRect(x,ry,w,h,r,r,'D');}
+
+    function sh(lbl,sy){
+      chk(14);
+      doc.setFontSize(7.5);doc.setFont('helvetica','bold');doc.setTextColor(...PURPLE);
+      doc.text(lbl.toUpperCase(),M,sy);
+      doc.setDrawColor(...LILAC);doc.setLineWidth(0.3);
+      doc.line(M,sy+1.5,W-M,sy+1.5);
+      return sy+7;
+    }
+    function si(txt,sy,ac=PURPLE,bg=PALE){
+      chk(16);
+      const lines=doc.splitTextToSize(clean(txt),col-14);
+      const h=Math.max(12,lines.length*5+6);
+      fr(M,sy,col,h,bg);
+      doc.setFillColor(...ac);doc.rect(M,sy,2.5,h,'F');
+      doc.setFontSize(8.5);doc.setFont('helvetica','normal');doc.setTextColor(...PLUM);
+      doc.text(lines,M+6,sy+5.5);
+      return sy+h+3;
+    }
+    function di(item,sy){
+      chk(22);
+      const l1s=[...(drillL1[item.id]||new Set())].map(id=>item.drillL1.opts.find(o=>o.id===id)?.text).filter(Boolean);
+      const l2ts=[];
+      Object.entries(drillL2[item.id]||{}).forEach(([oid,l2set])=>{
+        const l2d=item.drillL2[oid];if(!l2d)return;
+        [...l2set].forEach(lid=>{const o=l2d.opts.find(x=>x.id===lid);if(o)l2ts.push(o.text);});
+      });
+      const free=drillFree[item.id]?.trim();
+      const titleLines=doc.splitTextToSize(clean(item.text),col-10);
+      let h=titleLines.length*5+6;
+      h+=l1s.length*6;h+=l2ts.length*6;if(free)h+=6;h=Math.max(h,14);
+      fr(M,sy,col,h,PALE);sr(M,sy,col,h,LILAC);
+      doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(...PLUM);
+      doc.text(titleLines,M+4,sy+5.5);
+      let dy=sy+titleLines.length*5+4;
+      l1s.forEach(t=>{
+        doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(...PURPLE);
+        const ll=doc.splitTextToSize('\u2192 '+clean(t),col-10);
+        doc.text(ll,M+6,dy);dy+=ll.length*5+1;
+      });
+      l2ts.forEach(t=>{
+        doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(...MUTED);
+        const ll=doc.splitTextToSize('\u2192 '+clean(t),col-12);
+        doc.text(ll,M+8,dy);dy+=ll.length*5+1;
+      });
+      if(free){
+        doc.setFontSize(8);doc.setFont('helvetica','italic');doc.setTextColor(...MUTED);
+        const ll=doc.splitTextToSize('\u2192 '+clean(free),col-12);
+        doc.text(ll,M+8,dy);
+      }
+      return sy+h+3;
+    }
+
+    /* Header */
+    fr(0,0,W,38,PLUM,0);
+    doc.setFontSize(16);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);
+    doc.text('Work Explorer',M,16);
+    doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(...LILAC);
+    const shared=getShared();
+    doc.text(shared.length?'Includes items prepared for sharing':'Private \u2014 for your own reflection',M,24);
+    doc.setFontSize(7.5);doc.setTextColor(...YELLOW);
+    doc.text('Brain in Hand  |  '+new Date().toLocaleDateString('en-GB'),M,31);
+    y=46;
+
+    /* Wellbeing */
+    y=sh('In a nutshell',y);
+    y=si(wbLabel(wellbeing),y);y+=2;
+
+    /* Shared */
+    if(shared.length){
+      y=sh('Where things are harder',y);
+      shared.forEach(item=>{y=di(item,y);});
+      y+=2;
+    }
+
+    /* Helping */
+    const helping=[];
+    getRecognised().forEach(item=>{
+      if(triedFree[item.id]?.trim())helping.push(triedFree[item.id].trim());
+    });
+    if(helping.length){y=sh('What\'s already helping',y);helping.forEach(t=>{y=si(t,y,GREEN,GBG);});y+=2;}
+
+    /* Suggestions */
+    const sugs=[];
+    getRecognised().forEach(item=>{
+      item.suggestions.forEach((s,si2)=>{if(selectedSugs[item.id]?.[si2])sugs.push(s.text);});
+    });
+    if(sugs.length){y=sh('Things worth exploring',y);sugs.forEach(s=>{y=si(s,y,AMBER,ABG);});y+=2;}
+
+    /* Private — page 2 */
+    const priv=getPrivate();
+    if(priv.length){
+      ap();
+      fr(0,0,W,32,PLUM,0);
+      doc.setFontSize(13);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);
+      doc.text('Your private notes',W/2,14,{align:'center'});
+      doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(...LILAC);
+      doc.text('Just for you \u2014 please don\'t share this page',W/2,22,{align:'center'});
+      y=40;
+      fr(M,y,col,14,PBG,2);sr(M,y,col,14,PBD);
+      doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(...PRIV);
+      const pn=doc.splitTextToSize('These are the things you noted for yourself and chose not to include in a shared summary. They\'re here so you have a record. You can use them to start a conversation when you\'re ready, or simply keep them for yourself.',col-8);
+      doc.text(pn,M+4,y+5);
+      y+=18;
+      y=sh('Things I noted for myself',y);
+      priv.forEach(item=>{y=di(item,y);});
+    }
+
+    /* Caveat */
+    chk(20);y+=3;
+    fr(M,y,col,16,PALE,2);sr(M,y,col,16,LILAC);
+    doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(...MUTED);
+    const cav=doc.splitTextToSize('This summary reflects personal experience and is a starting point for a conversation, not a formal document. It sits alongside rather than replacing Access to Work, Occupational Health, or any other process your organisation has in place.',col-8);
+    doc.text(cav,M+4,y+5);
+
+    /* Footer */
+    const pages=doc.getNumberOfPages();
+    for(let i=1;i<=pages;i++){
+      doc.setPage(i);
+      doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(...MUTED);
+      doc.text('Brain in Hand \u2014 Work Explorer \u2014 '+new Date().toLocaleDateString('en-GB'),M,291);
+      doc.text('Page '+i+' of '+pages,W-M,291,{align:'right'});
+    }
+    doc.save('work-explorer.pdf');
+  } catch(err) {
+    console.error(err);
+    alert('Sorry \u2014 something went wrong. Please try again.');
+  }
+  document.body.removeChild(ov);
+}
+
+/* ── Handlers ────────────────────────────────────────────────────── */
+function toggleJD(){jdLoaded=!jdLoaded;render();}
+function reRenderCheckin(){document.getElementById('app').innerHTML=renderCheckin();}
+
+function cycleRecog(id){
+  const cur=recognised[id];
+  recognised[id]=cur===null?'yes':cur==='yes'?'sometimes':null;
+  if(recognised[id]===null)shareChoice[id]=null;
+  render();
+}
+
+
+function toggleL1(id,optId){
+  const s=drillL1[id];
+  s.has(optId)?s.delete(optId):s.add(optId);
+  // Update only the clicked button in place
+  const btn=document.querySelector('[data-l1="'+id+'-'+optId+'"]');
+  if(btn) btn.classList.toggle('sel',s.has(optId));
+  // Enable/disable the Next button based on whether anything is selected
+  const nextBtn=document.querySelector('.btn-next');
+  if(nextBtn) nextBtn.disabled = s.size === 0;
+  // Show/hide L2 follow-up for this option without full re-render
+  updateL2Block(id,optId,s.has(optId));
+}
+function updateL2Block(id,optId,show){
+  const item=ITEMS.find(r=>r.id===id);
+  if(!item||!item.drillL2[optId])return;
+  const blockId='l2-block-'+id+'-'+optId;
+  let block=document.getElementById(blockId);
+  if(show&&!block){
+    // Create and insert L2 block after all L1 options
+    if(!drillL2[id][optId])drillL2[id][optId]=new Set();
+    const l2sel=drillL2[id][optId];
+    const l2def=item.drillL2[optId];
+    const l1opt=item.drillL1.opts.find(o=>o.id===optId);
+    const div=document.createElement('div');
+    div.id=blockId;
+    div.className='drill-card';
+    div.style.marginTop='0';
+    div.innerHTML=`<div class="drill-ctx">You selected: <strong>${l1opt.text}</strong></div>
+      <div class="drill-q">${l2def.q}</div>
+      <div class="drill-hint">Pick as many as feel true.</div>
+      <div class="drill-opts">
+        ${l2def.opts.map(o=>`<div class="drill-opt${l2sel.has(o.id)?' sel':''}"
+          data-l2="${id}-${optId}-${o.id}"
+          onclick="toggleL2('${id}','${optId}','${o.id}')"
+          role="button" tabindex="0">
+          <div class="dopt-dot"><div class="dopt-in"></div></div>
+          <div class="dopt-txt">${o.text}</div>
+        </div>`).join('')}
+      </div>`;
+    // Insert after the L1 card
+    const l1card=document.getElementById('l1-card-'+id);
+    if(l1card&&l1card.parentNode){
+      // Insert after existing L2 blocks or after L1 card
+      let insertAfter=l1card;
+      let next=l1card.nextSibling;
+      while(next&&next.id&&next.id.startsWith('l2-block-')){
+        insertAfter=next;next=next.nextSibling;
+      }
+      insertAfter.parentNode.insertBefore(div,insertAfter.nextSibling);
+    }
+  } else if(!show&&block){
+    block.remove();
+  }
+}
+function toggleL2(id,l1id,optId){
+  if(!drillL2[id][l1id])drillL2[id][l1id]=new Set();
+  const s=drillL2[id][l1id];
+  s.has(optId)?s.delete(optId):s.add(optId);
+  const btn=document.querySelector('[data-l2="'+id+'-'+l1id+'-'+optId+'"]');
+  if(btn) btn.classList.toggle('sel',s.has(optId));
+}
+function setTried(itemId,tId,rating){
+  if(!triedRatings[itemId])triedRatings[itemId]={};
+  triedRatings[itemId][tId]=triedRatings[itemId][tId]===rating?null:rating;
+  // Re-render only the rating buttons for this tried item, not the whole page
+  const ratingRow = document.querySelector('[data-tried-item="'+itemId+'-'+tId+'"]');
+  if(ratingRow){
+    const r=triedRatings[itemId][tId];
+    ratingRow.querySelectorAll('.trat').forEach(btn=>{
+      const rtype=btn.getAttribute('data-rating');
+      btn.className='trat'+(r===rtype?' '+rtype:'');
+    });
+  }
+}
+function setShareDecision(choice){
+  shareDecision=choice;
+  document.querySelectorAll('.share-opt').forEach(el=>el.classList.remove('sel'));
+  const opts=['private','manager','hr','oh','unsure'];
+  const idx=opts.indexOf(choice);
+  const all=document.querySelectorAll('.share-opt');
+  if(all[idx])all[idx].classList.add('sel');
+  const btn=document.querySelector('.btn-next');
+  if(btn)btn.disabled=false;
+}
+
+function toggleSug(itemId,si){
+  if(!selectedSugs[itemId])selectedSugs[itemId]={};
+  selectedSugs[itemId][si]=!selectedSugs[itemId][si];
+  render();
+}
+
+/* ── Main render ────────────────────────────────────────────────── */
+function render(){
+  renderPips();
+  window.scrollTo(0,0);
+  const app=document.getElementById('app');
+  switch(STAGES[stage]){
+    case 'welcome':     app.innerHTML=renderWelcome();      break;
+    case 'checkin':     app.innerHTML=renderCheckin();      break;
+    case 'recog-me':    app.innerHTML=renderRecogGroup('me');  break;
+    case 'recog-env':   app.innerHTML=renderRecogGroup('env'); break;
+    case 'drill':       app.innerHTML=renderDrill();        break;
+    case 'tried':       app.innerHTML=renderTried();        break;
+    case 'suggestions': app.innerHTML=renderSuggestions();  break;
+    case 'share':       app.innerHTML=renderShare();        break;
+    case 'summary':     app.innerHTML=renderSummary();      break;
+  }
+}
+
+function restart(){
+  stage=0;wellbeing=50;jdLoaded=false;
+  ITEMS.forEach(r=>{
+    recognised[r.id]=null;shareChoice[r.id]=null;
+    drillL1[r.id]=new Set();drillL2[r.id]={};
+    drillFree[r.id]='';triedRatings[r.id]={};
+    triedFree[r.id]='';selectedSugs[r.id]={};
+  });
+  drillQueue=[];drillIdx=0;shareDecision=null;
+  render();
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'||e.key===' '){
+    const t=e.target;
+    if(['drill-opt','sug-item'].some(c=>t.classList.contains(c))){e.preventDefault();t.click();}
+  }
+});
+
+render();
+
+/* ── Text to Speech ─────────────────────────────────────────────── */
+let ttsActive = false;
+let ttsUtterance = null;
+let ttsPaused = false;
+
+function getTTSText() {
+  // Extract readable text from the current screen
+  const app = document.getElementById('app');
+  if (!app) return '';
+
+  const parts = [];
+
+  // Eyebrow / label
+  const eyebrow = app.querySelector('.s-eyebrow');
+  if (eyebrow) parts.push(eyebrow.textContent.trim());
+
+  // Main heading
+  const head = app.querySelector('.s-head');
+  if (head) parts.push(head.textContent.trim());
+
+  // Warm subtitle
+  const warm = app.querySelector('.s-warm');
+  if (warm) parts.push(warm.textContent.trim());
+
+  // Sub text
+  const sub = app.querySelector('.s-sub');
+  if (sub) parts.push(sub.textContent.trim());
+
+  // Card paragraphs (welcome screen)
+  app.querySelectorAll('.card p').forEach(p => {
+    parts.push(p.textContent.trim());
+  });
+
+  // Note boxes
+  app.querySelectorAll('.note').forEach(n => {
+    parts.push(n.textContent.trim());
+  });
+
+  // Group intro
+  const groupIntro = app.querySelector('.group-intro-body');
+  if (groupIntro) parts.push(groupIntro.textContent.trim());
+
+  // Recognition tiles — read each statement
+  app.querySelectorAll('.recog-text').forEach(t => {
+    parts.push(t.textContent.trim());
+  });
+
+  // Drill context
+  const drillCtx = app.querySelector('.drill-ctx');
+  if (drillCtx) parts.push(drillCtx.textContent.trim());
+
+  // Drill question
+  const drillQ = app.querySelector('.drill-q');
+  if (drillQ) parts.push(drillQ.textContent.trim());
+
+  // Drill hint
+  const drillHint = app.querySelector('.drill-hint');
+  if (drillHint) parts.push(drillHint.textContent.trim());
+
+  // Drill options
+  app.querySelectorAll('.dopt-txt').forEach((opt, i) => {
+    parts.push('Option ' + (i + 1) + ': ' + opt.textContent.trim());
+  });
+
+  // Suggestion items
+  app.querySelectorAll('.sug-text').forEach(s => {
+    parts.push(s.textContent.trim());
+  });
+
+  // Summary paragraphs
+  app.querySelectorAll('.sum-para,.sum-item,.sum-drill-text,.sum-drill-l1,.sum-drill-l2').forEach(el => {
+    const t = el.textContent.trim();
+    if (t) parts.push(t);
+  });
+
+  return parts.filter(Boolean).join('. ');
+}
+
+function toggleTTS() {
+  if (ttsActive) {
+    stopTTS();
+  } else {
+    startTTS();
+  }
+}
+
+function startTTS() {
+  if (!window.speechSynthesis) {
+    alert('Read aloud isn\'t supported in this browser. Try Chrome or Safari.');
+    return;
+  }
+
+  stopTTS(); // clear any existing
+
+  const text = getTTSText();
+  if (!text) return;
+
+  ttsUtterance = new SpeechSynthesisUtterance(text);
+  ttsUtterance.rate  = 0.88;  // slightly slower than default
+  ttsUtterance.pitch = 1;
+  ttsUtterance.lang  = 'en-GB';
+
+  // Try to find a natural English voice
+  const voices = window.speechSynthesis.getVoices();
+  const preferred = voices.find(v =>
+    v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Daniel') ||
+    v.name.includes('Samantha') || v.name.includes('Karen') || v.name.includes('Moira'))
+  ) || voices.find(v => v.lang.startsWith('en-GB'))
+    || voices.find(v => v.lang.startsWith('en'));
+  if (preferred) ttsUtterance.voice = preferred;
+
+  ttsUtterance.onstart = () => {
+    ttsActive = true;
+    document.querySelector('.shell').classList.add('tts-reading');
+    const bar = document.getElementById('tts-bar');
+    if (bar) bar.classList.remove('hidden');
+    updateTTSBar('Reading aloud — tap the speaker to stop');
+  };
+
+  ttsUtterance.onend = ttsUtterance.onerror = () => {
+    ttsActive = false;
+    document.querySelector('.shell').classList.remove('tts-reading');
+    const bar = document.getElementById('tts-bar');
+    if (bar) bar.classList.add('hidden');
+  };
+
+  window.speechSynthesis.speak(ttsUtterance);
+}
+
+function stopTTS() {
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  ttsActive = false;
+  document.querySelector('.shell').classList.remove('tts-reading');
+  const bar = document.getElementById('tts-bar');
+  if (bar) bar.classList.add('hidden');
+}
+
+function updateTTSBar(text) {
+  const el = document.getElementById('tts-bar-text');
+  if (el) el.textContent = text;
+}
+
+// Stop reading when page changes
+const _origRender = render;
+window.render = function() {
+  stopTTS();
+  _origRender();
+};
+
+// Voices may load async on some browsers
+if (window.speechSynthesis) {
+  window.speechSynthesis.onvoiceschanged = () => {};
+}
+</script>
+</body>
+</html>
